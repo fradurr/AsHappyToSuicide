@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.vite/
+.DS_Store
+*.log
+
+# Le fonti scaricate non si committano: si rigenerano con `npm run build:data`.
+# Il README della cartella si', per sapere cosa ci va dentro.
+data/sources/*
+!data/sources/README.md
