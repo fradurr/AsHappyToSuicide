@@ -9,7 +9,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "placeholder": "node scripts/make-placeholder.js"
+    "placeholder": "node scripts/make-placeholder.js",
+    "templates": "node scripts/make-templates.js"
   },
   "repository": {
     "type": "git",

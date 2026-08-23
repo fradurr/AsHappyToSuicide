@@ -33,10 +33,11 @@ potrebbe far sembrare reali dei numeri che non lo sono.
 ```
 npm install
 npm run build:data          # unisce le fonti e scrive public/data/countries.json
-npm test                    # 16 test sul join, sui percentili e sui fallimenti
+npm test                    # 24 test sul join, sui percentili e sui fallimenti
 npm run dev                 # server di sviluppo Vite
 npm run build               # build statica del sito
 npm run placeholder         # dati FINTI, solo per vedere la mappa girare
+npm run templates           # due tabelle vuote da compilare a mano
 ```
 
 `build:data` e `build` sono separati di proposito: le fonti cambiano una volta
@@ -57,13 +58,19 @@ npm run build:data -- --weight 0.4     # peso diverso per la componente suicidi
 
 ## Le fonti
 
-Le due fonti non sono committate. `build:data` prova a scaricarle e, se non ci riesce,
-dice esattamente cosa scaricare e dove metterlo — vedi
-[`data/sources/README.md`](./data/sources/README.md).
+Le due fonti non sono committate. Due strade, entrambe descritte in
+[`data/sources/README.md`](./data/sources/README.md):
 
-Se la rete blocca `worldhappiness.report` o `ourworldindata.org` (capita dietro proxy
-aziendali e in ambienti CI con egress ristretto), l'unica strada è scaricare i due file
-a mano e usare `--offline`.
+1. **I file ufficiali.** `build:data` prova a scaricarli e, se non ci riesce, dice
+   esattamente cosa scaricare e dove metterlo.
+2. **Tabelle compilate a mano.** `npm run templates` genera due CSV con una riga per
+   paese, codice ISO3 e nome già dentro: resta da riempire una colonna.
+
+La seconda strada non è solo più comoda: il codice ISO3 esplicito elimina il problema
+della corrispondenza dei nomi, che è il modo più probabile di rompere il join.
+
+In entrambi i casi una cella vuota significa "paese senza dato" e resta grigio, mentre
+una cella piena ma illeggibile ferma il build indicando la riga.
 
 ## La formula
 

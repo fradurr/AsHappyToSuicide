@@ -250,3 +250,178 @@ test('xlsx: le intestazioni vengono trovate anche sotto una riga di titolo', asy
   assert.equal(out.countries.ITA.whr, 6.32);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+// --- tabelle compilate a mano (percorso offline) ----------------------------
+
+function scriviCsv(file, testo) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, testo);
+}
+
+async function scenarioCsv(benessereCsv, suicidiCsv) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'whr-test-'));
+  scriviCsv(path.join(dir, 'sources', 'whr-figure-2.1.csv'), benessereCsv);
+  scriviCsv(path.join(dir, 'sources', 'who-suicide-rate.csv'), suicidiCsv);
+  return dir;
+}
+
+const BENESSERE_CSV = `iso3,paese,paese_en,benessere
+FIN,Finlandia,Finland,7.74
+DNK,Danimarca,Denmark,7.52
+ITA,Italia,Italy,6.32
+KOR,Corea del Sud,South Korea,6.04
+TUR,Turchia,Türkiye,4.72
+COD,Repubblica Democratica del Congo,DR Congo,4.02
+COG,Repubblica del Congo,Congo,5.22
+NOR,Norvegia,Norway,
+`;
+
+const SUICIDI_CSV = `iso3,paese,tasso
+FIN,Finlandia,15.3
+DNK,Danimarca,9.4
+ITA,Italia,4.3
+KOR,Corea del Sud,28.6
+TUR,Turchia,2.6
+COD,Repubblica Democratica del Congo,6.4
+COG,Repubblica del Congo,5.1
+NOR,Norvegia,11.2
+`;
+
+test('offline: due tabelle con ISO3 si uniscono senza passare dai nomi', async () => {
+  const dir = await scenarioCsv(BENESSERE_CSV, SUICIDI_CSV);
+  runBuild(dir);
+
+  const out = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'countries.json'), 'utf8'));
+  assert.deepEqual(Object.keys(out.countries).sort(), ['COD', 'COG', 'DNK', 'FIN', 'ITA', 'KOR', 'TUR']);
+  // La Norvegia ha il tasso ma la cella del benessere e' vuota: resta fuori.
+  assert.equal(out.countries.NOR, undefined);
+  assert.equal(out.countries.COD.whr, 4.02);
+  assert.equal(out.countries.COG.whr, 5.22);
+
+  const report = JSON.parse(fs.readFileSync(path.join(dir, 'report.json'), 'utf8'));
+  // Nessun nome e' passato dalla tabella di conversione: il codice basta.
+  assert.ok(report.join.every((j) => j.via === 'codice nella tabella'));
+  assert.deepEqual(report.suicideOnly.map((c) => c.iso3), ['NOR']);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('offline: una cella non numerica ferma il build e dice quale riga', async () => {
+  const rotto = BENESSERE_CSV.replace('ITA,Italia,Italy,6.32', 'ITA,Italia,Italy,sei virgola tre');
+  const dir = await scenarioCsv(rotto, SUICIDI_CSV);
+  assert.throws(
+    () => runBuild(dir),
+    (err) => {
+      const t = String(err.stderr);
+      assert.match(t, /Valori non validi nella fonte benessere/);
+      assert.match(t, /riga 4/);
+      assert.match(t, /ITA/);
+      return true;
+    },
+  );
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('offline: un punteggio fuori dalla scala 0-10 ferma il build', async () => {
+  const rotto = BENESSERE_CSV.replace('ITA,Italia,Italy,6.32', 'ITA,Italia,Italy,63.2');
+  const dir = await scenarioCsv(rotto, SUICIDI_CSV);
+  assert.throws(
+    () => runBuild(dir),
+    (err) => {
+      assert.match(String(err.stderr), /fuori dalla scala 0-10/);
+      return true;
+    },
+  );
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('offline: un tasso di suicidio implausibile ferma il build', async () => {
+  const rotto = SUICIDI_CSV.replace('ITA,Italia,4.3', 'ITA,Italia,430');
+  const dir = await scenarioCsv(BENESSERE_CSV, rotto);
+  assert.throws(
+    () => runBuild(dir),
+    (err) => {
+      assert.match(String(err.stderr), /fuori da ogni intervallo plausibile/);
+      return true;
+    },
+  );
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('offline: la virgola decimale italiana viene accettata', async () => {
+  const virgole = BENESSERE_CSV.replace('ITA,Italia,Italy,6.32', 'ITA,Italia,Italy,"6,32"');
+  const dir = await scenarioCsv(virgole, SUICIDI_CSV);
+  runBuild(dir);
+  const out = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'countries.json'), 'utf8'));
+  assert.equal(out.countries.ITA.whr, 6.32);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('offline: un codice ISO3 malformato ferma il build', async () => {
+  const rotto = BENESSERE_CSV.replace('ITA,Italia,Italy,6.32', 'ITALIA,Italia,Italy,6.32');
+  const dir = await scenarioCsv(rotto, SUICIDI_CSV);
+  assert.throws(
+    () => runBuild(dir),
+    (err) => {
+      const t = String(err.stderr);
+      assert.match(t, /Join WHR -> ISO3 incompleto/);
+      assert.match(t, /codice malformato/);
+      return true;
+    },
+  );
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('le tabelle generate sono compilabili cosi come sono', async () => {
+  const { execFileSync } = await import('node:child_process');
+  execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'make-templates.js')], { cwd: ROOT });
+  const csv = fs.readFileSync(path.join(ROOT, 'data', 'templates', 'benessere.csv'), 'utf8');
+  const righe = parseCsv(csv);
+  assert.deepEqual(righe[0], ['iso3', 'paese', 'paese_en', 'benessere']);
+  assert.ok(righe.length > 150, 'devono esserci tutti i paesi disegnabili');
+  // Ogni riga ha un codice valido e la colonna del valore vuota.
+  for (const r of righe.slice(1)) {
+    assert.match(r[0], /^[A-Z]{3}$/);
+    assert.equal(r[3], '');
+  }
+  assert.ok(righe.some((r) => r[0] === 'ITA' && r[1] === 'Italia'));
+  assert.ok(!righe.some((r) => r[0] === 'ATA'), 'Antartide esclusa dalla mappa e dalle tabelle');
+});
+
+test('offline: le tabelle generate, compilate, arrivano fino al JSON', async () => {
+  const { execFileSync: exec } = await import('node:child_process');
+  exec(process.execPath, [path.join(ROOT, 'scripts', 'make-templates.js')], { cwd: ROOT });
+
+  // Compilo i due modelli come farebbe una persona: qualche cella lasciata vuota.
+  const compila = (nome, base) => {
+    const righe = parseCsv(fs.readFileSync(path.join(ROOT, 'data', 'templates', nome), 'utf8'));
+    const out = [righe[0].join(',')];
+    righe.slice(1).forEach((r, i) => {
+      r[3] = i % 5 === 0 ? '' : String(base + (i % 17) * 0.13);
+      out.push(r.map((c) => (/[",]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c)).join(','));
+    });
+    return `${out.join('\n')}\n`;
+  };
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'whr-test-'));
+  scriviCsv(path.join(dir, 'sources', 'benessere.csv'), compila('benessere.csv', 4));
+  scriviCsv(path.join(dir, 'sources', 'suicidi.csv'), compila('suicidi.csv', 6));
+
+  const stdout = runBuild(dir);
+  const out = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'countries.json'), 'utf8'));
+
+  assert.ok(out.meta.countriesWithData > 100);
+  // Senza colonna Year non si dichiara un anno: null, non zero.
+  assert.equal(out.meta.suicideYear, null);
+
+  // Il valore deve venire dalla colonna giusta: con due colonne di nomi
+  // (paese, paese_en) un riconoscimento ingenuo prenderebbe il nome inglese.
+  for (const c of Object.values(out.countries)) {
+    assert.equal(typeof c.suicide, 'number');
+    assert.ok(c.whr >= 0 && c.whr <= 10, `benessere fuori scala: ${c.whr}`);
+  }
+
+  const report = JSON.parse(fs.readFileSync(path.join(dir, 'report.json'), 'utf8'));
+  assert.ok(report.join.every((j) => j.via === 'codice nella tabella'));
+  assert.match(stdout, /codice ISO3 gia nella tabella/);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

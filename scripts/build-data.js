@@ -63,6 +63,9 @@ const SOURCES = {
     // e salvarlo con il nome qui sotto in data/sources/.
     url: 'https://happiness-report.s3.amazonaws.com/2025/Data+for+Figure+2.1+(2025).xlsx',
     file: 'whr-figure-2.1.xlsx',
+    // Il file scaricato ha il primo nome; gli altri servono a chi compila la
+    // tabella a mano partendo da data/templates/.
+    nomiAccettati: ['whr-figure-2.1.xlsx', 'whr-figure-2.1.csv', 'benessere.csv', 'benessere.xlsx'],
     page: 'https://worldhappiness.report/data-sharing/',
     edition: 2025,
     years: '2022-2024',
@@ -71,6 +74,7 @@ const SOURCES = {
     label: 'OMS Global Health Estimates 2021 — tasso di suicidio standardizzato per eta',
     url: 'https://ourworldindata.org/grapher/death-rate-from-suicides-gho.csv?v=1&csvType=full&useColumnShortNames=false',
     file: 'who-suicide-rate.csv',
+    nomiAccettati: ['who-suicide-rate.csv', 'who-suicide-rate.xlsx', 'suicidi.csv', 'suicidi.xlsx'],
     page: 'https://ourworldindata.org/grapher/death-rate-from-suicides-gho',
     source: 'WHO GHE 2021',
   },
@@ -126,16 +130,22 @@ function fail(message, detail) {
 async function ensureSource(key, { refresh, offline }) {
   const src = SOURCES[key];
   const dest = path.join(SOURCES_DIR, src.file);
-  const exists = fs.existsSync(dest);
 
-  if (exists && !refresh) return dest;
+  const presente = (src.nomiAccettati ?? [src.file])
+    .map((n) => path.join(SOURCES_DIR, n))
+    .find((p) => fs.existsSync(p));
+
+  if (presente && !refresh) return presente;
 
   if (offline) {
     fail(
       `Manca la copia locale di: ${src.label}`,
       [
-        `  atteso in: ${rel(dest)}`,
-        `  scaricalo da: ${src.page}`,
+        `  attesa in ${rel(SOURCES_DIR)}, con uno di questi nomi:`,
+        ...(src.nomiAccettati ?? [src.file]).map((n) => `    ${n}`),
+        '',
+        `  scaricala da: ${src.page}`,
+        '  oppure compila la tabella in data/templates/ (npm run templates)',
         '  (modalita --offline: nessun download automatico)',
       ].join('\n'),
     );
@@ -235,42 +245,53 @@ function cellText(v) {
 /** Riconosce la colonna del punteggio Cantril, la cui intestazione cambia fra edizioni. */
 function findWellbeingColumns(header) {
   const norm = header.map((h) => normalizeName(h ?? ''));
-  const countryIdx = norm.findIndex((h) => h === 'country name' || h === 'country' || h === 'country or region');
+  // Grafie del WHR (cambiano fra edizioni) piu' quelle di data/templates/.
+  const countryIdx = norm.findIndex(
+    (h) => h === 'country name' || h === 'country' || h === 'country or region' || h === 'paese' || h === 'nome',
+  );
   const scoreIdx = norm.findIndex(
     (h) =>
       h === 'ladder score' ||
       h === 'happiness score' ||
       h === 'score' ||
       h === 'life ladder' ||
+      h === 'benessere' ||
+      h === 'punteggio' ||
+      h === 'cantril' ||
       h.startsWith('ladder score'),
   );
-  return { countryIdx, scoreIdx, header };
+  const iso3Idx = norm.findIndex((h) => h === 'iso3' || h === 'code' || h === 'codice' || h === 'iso');
+  return { countryIdx, scoreIdx, iso3Idx, header };
 }
 
-async function readWellbeing(file) {
+/** Legge un CSV o un xlsx come righe grezze. Le due fonti passano di qui. */
+async function leggiTabella(file, etichetta) {
   const ext = path.extname(file).toLowerCase();
-  let rows;
 
   if (ext === '.csv' || ext === '.tsv') {
-    rows = parseCsv(fs.readFileSync(file, 'utf8'));
-  } else if (ext === '.xlsx') {
+    return parseCsv(fs.readFileSync(file, 'utf8'));
+  }
+  if (ext === '.xlsx') {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.readFile(file);
     const ws = wb.worksheets[0];
     if (!ws) fail(`Il file ${rel(file)} non contiene fogli.`);
-    rows = [];
+    const rows = [];
     ws.eachRow({ includeEmpty: false }, (r) => {
       const values = [];
       for (let c = 1; c <= ws.columnCount; c += 1) values.push(cellText(r.getCell(c).value));
       rows.push(values);
     });
-  } else {
-    fail(
-      `Formato non supportato per la fonte benessere: ${ext || '(nessuna estensione)'}`,
-      '  Formati accettati: .xlsx, .csv. Un vecchio .xls va riesportato in .xlsx o .csv.',
-    );
+    return rows;
   }
+  return fail(
+    `Formato non supportato per la fonte ${etichetta}: ${ext || '(nessuna estensione)'}`,
+    '  Formati accettati: .xlsx, .csv. Un vecchio .xls va riesportato in .xlsx o .csv.',
+  );
+}
 
+async function readWellbeing(file) {
+  const rows = await leggiTabella(file, 'benessere');
   if (!rows.length) fail(`La fonte benessere e' vuota: ${rel(file)}`);
 
   // Alcune edizioni mettono un titolo o una riga vuota prima delle intestazioni,
@@ -278,12 +299,16 @@ async function readWellbeing(file) {
   let headerRow = -1;
   let countryIdx = -1;
   let scoreIdx = -1;
+  let iso3Idx = -1;
   for (let i = 0; i < Math.min(rows.length, 10); i += 1) {
     const found = findWellbeingColumns(rows[i].map((v) => (v == null ? '' : String(v))));
-    if (found.countryIdx !== -1 && found.scoreIdx !== -1) {
+    // Basta la coppia codice+punteggio: il nome del paese diventa facoltativo
+    // quando la tabella porta gia' l'ISO3.
+    if (found.scoreIdx !== -1 && (found.countryIdx !== -1 || found.iso3Idx !== -1)) {
       headerRow = i;
       countryIdx = found.countryIdx;
       scoreIdx = found.scoreIdx;
+      iso3Idx = found.iso3Idx;
       break;
     }
   }
@@ -293,19 +318,44 @@ async function readWellbeing(file) {
       [
         `  file: ${rel(file)}`,
         `  prima riga: ${rows[0].filter(Boolean).join(' | ')}`,
-        '  servono una colonna col nome del paese (es. "Country name") e una',
-        '  col punteggio Cantril (es. "Ladder score").',
+        '  serve una colonna col punteggio (es. "Ladder score" o "benessere") e',
+        '  una col paese: il codice ISO3 ("iso3" o "Code") oppure il nome',
+        '  ("Country name" o "paese").',
+        '  Il modello pronto lo generi con: npm run templates',
       ].join('\n'),
     );
   }
 
   const out = [];
-  for (const r of rows.slice(headerRow + 1)) {
-    const name = r[countryIdx] == null ? '' : String(r[countryIdx]).trim();
-    const score = Number(r[scoreIdx]);
-    if (!name) continue;
-    if (!Number.isFinite(score)) continue;
-    out.push({ name, score });
+  const scartate = [];
+  for (const [n, r] of rows.slice(headerRow + 1).entries()) {
+    const riga = headerRow + n + 2; // numero di riga come lo vede un foglio di calcolo
+    const name = countryIdx === -1 || r[countryIdx] == null ? '' : String(r[countryIdx]).trim();
+    const iso3 = iso3Idx === -1 || r[iso3Idx] == null ? '' : String(r[iso3Idx]).trim().toUpperCase();
+    const grezzo = r[scoreIdx];
+    if (!name && !iso3) continue;
+
+    // Cella vuota = paese senza dato, e va bene. Cella piena ma non numerica =
+    // errore di compilazione, e va detto invece che ignorato.
+    const vuota = grezzo == null || String(grezzo).trim() === '';
+    if (vuota) continue;
+    const score = Number(String(grezzo).replace(',', '.'));
+    if (!Number.isFinite(score)) {
+      scartate.push(`riga ${riga}: "${iso3 || name}" ha punteggio "${grezzo}", che non e' un numero`);
+      continue;
+    }
+    if (score < 0 || score > 10) {
+      scartate.push(`riga ${riga}: "${iso3 || name}" ha punteggio ${score}, fuori dalla scala 0-10`);
+      continue;
+    }
+    out.push({ name, iso3, score });
+  }
+
+  if (scartate.length) {
+    fail(
+      `Valori non validi nella fonte benessere: ${rel(file)}`,
+      `${scartate.map((r) => `    - ${r}`).join('\n')}\n\n  Lascia la cella vuota se il dato non c'e'; un valore illeggibile viene segnalato, non ignorato.`,
+    );
   }
   if (!out.length) fail(`Nessuna riga valida nella fonte benessere: ${rel(file)}`);
   return out;
@@ -315,28 +365,45 @@ async function readWellbeing(file) {
 // Fonte 2: mortalita' per suicidio (OMS GHE via Our World in Data)
 // ---------------------------------------------------------------------------
 
-function readSuicide(file) {
-  const rows = parseCsv(fs.readFileSync(file, 'utf8'));
+async function readSuicide(file) {
+  const rows = await leggiTabella(file, 'suicidi');
   if (!rows.length) fail(`La fonte suicidi e' vuota: ${rel(file)}`);
 
-  const header = rows[0].map((h) => h.trim());
-  const idx = (name) => header.findIndex((h) => normalizeName(h) === name);
-  const entityIdx = idx('entity');
-  const codeIdx = idx('code');
-  const yearIdx = idx('year');
-  // Il nome della colonna del valore e' lunghissimo e cambia: prendo l'unica
-  // colonna che non sia Entity/Code/Year.
-  const valueIdx = header.findIndex(
-    (_, i) => i !== entityIdx && i !== codeIdx && i !== yearIdx,
-  );
+  const header = rows[0].map((h) => (h == null ? '' : String(h).trim()));
+  const trova = (...nomi) => header.findIndex((h) => nomi.includes(normalizeName(h)));
+  const entityIdx = trova('entity', 'paese', 'country', 'nome');
+  const codeIdx = trova('code', 'iso3', 'codice', 'iso');
+  const yearIdx = trova('year', 'anno');
 
-  if ([entityIdx, codeIdx, yearIdx, valueIdx].some((i) => i === -1)) {
+  // La colonna del valore: prima si cerca per nome, perche' e' l'unico modo
+  // sicuro. Solo se non si trova si ricade sull'ultima colonna non riconosciuta
+  // — l'export OWID mette li' il valore, sotto un'intestazione lunghissima che
+  // cambia fra versioni. "La prima non riconosciuta" sarebbe sbagliato: una
+  // tabella con due colonne di nomi (paese, paese_en) beccherebbe il nome.
+  const NOMI_NON_VALORE = new Set([
+    'entity', 'paese', 'country', 'nome', 'paese_en', 'country name', 'nome_en',
+    'code', 'iso3', 'codice', 'iso', 'year', 'anno',
+  ]);
+  let valueIdx = trova('tasso', 'valore', 'rate', 'value', 'suicidi', 'suicide rate');
+  if (valueIdx === -1) {
+    for (let i = header.length - 1; i >= 0; i -= 1) {
+      if (i === entityIdx || i === codeIdx || i === yearIdx) continue;
+      if (NOMI_NON_VALORE.has(normalizeName(header[i]))) continue;
+      valueIdx = i;
+      break;
+    }
+  }
+
+  // Entity e Year sono facoltativi: una tabella compilata a mano puo' avere
+  // solo codice e valore. Codice e valore invece servono sempre.
+  if (codeIdx === -1 || valueIdx === -1) {
     fail(
       'Intestazioni inattese nella fonte suicidi.',
       [
         `  file: ${rel(file)}`,
         `  trovate: ${header.join(' | ')}`,
-        '  attese: Entity, Code, Year e una colonna di valori.',
+        '  servono almeno una colonna di codici ISO3 (Code / iso3) e una di valori.',
+        '  Entity e Year sono facoltativi.',
       ].join('\n'),
     );
   }
@@ -345,10 +412,13 @@ function readSuicide(file) {
   let aggregatesDropped = 0;
   let latestYear = -Infinity;
 
-  for (const r of rows.slice(1)) {
-    const code = (r[codeIdx] ?? '').trim();
-    const year = Number(r[yearIdx]);
-    const rate = Number(r[valueIdx]);
+  const scartate = [];
+  for (const [n, r] of rows.slice(1).entries()) {
+    const riga = n + 2;
+    const code = String(r[codeIdx] ?? '').trim().toUpperCase();
+    // Senza colonna Year sono tutte righe dello stesso anno, ignoto.
+    const year = yearIdx === -1 ? 0 : Number(r[yearIdx]);
+    const grezzo = r[valueIdx];
     // Codice vuoto = aggregato regionale ("World", "Europe", gruppi di reddito).
     if (!code) {
       aggregatesDropped += 1;
@@ -359,10 +429,28 @@ function readSuicide(file) {
       aggregatesDropped += 1;
       continue;
     }
-    if (!Number.isFinite(year) || !Number.isFinite(rate)) continue;
+    const vuota = grezzo == null || String(grezzo).trim() === '';
+    if (vuota) continue;
+    const rate = Number(String(grezzo).replace(',', '.'));
+    if (!Number.isFinite(rate)) {
+      scartate.push(`riga ${riga}: "${code}" ha tasso "${grezzo}", che non e' un numero`);
+      continue;
+    }
+    if (rate < 0 || rate > 200) {
+      scartate.push(`riga ${riga}: "${code}" ha tasso ${rate} per 100.000, fuori da ogni intervallo plausibile`);
+      continue;
+    }
+    if (!Number.isFinite(year)) continue;
     if (year > latestYear) latestYear = year;
     const prev = byIso.get(code);
-    if (!prev || year > prev.year) byIso.set(code, { iso3: code, entity: (r[entityIdx] ?? '').trim(), year, rate });
+    if (!prev || year > prev.year) byIso.set(code, { iso3: code, entity: String(r[entityIdx] ?? '').trim(), year, rate });
+  }
+
+  if (scartate.length) {
+    fail(
+      `Valori non validi nella fonte suicidi: ${rel(file)}`,
+      `${scartate.map((r) => `    - ${r}`).join('\n')}\n\n  Lascia la cella vuota se il dato non c'e'.`,
+    );
   }
 
   if (!byIso.size) fail(`Nessuna riga valida nella fonte suicidi: ${rel(file)}`);
@@ -376,7 +464,10 @@ function readSuicide(file) {
     else staleYear.push({ iso3, name: rec.entity, year: rec.year });
   }
 
-  return { byIso: kept, year: latestYear, aggregatesDropped, staleYear };
+  // Senza colonna Year non c'e' un anno da dichiarare: meglio null che uno zero
+  // che finirebbe nei metadati del sito come se fosse una data.
+  const year = yearIdx === -1 ? null : latestYear;
+  return { byIso: kept, year, aggregatesDropped, staleYear };
 }
 
 // ---------------------------------------------------------------------------
@@ -510,7 +601,7 @@ async function main() {
   console.log(`  ✓ suicidi:   ${path.relative(ROOT, suicideFile)}`);
 
   const wellbeingRows = await readWellbeing(wellbeingFile);
-  const suicide = readSuicide(suicideFile);
+  const suicide = await readSuicide(suicideFile);
   const geo = readGeometryIso3();
 
   // --- Join: nomi WHR -> ISO3 ---------------------------------------------
@@ -521,18 +612,32 @@ async function main() {
   const wellbeingByIso = new Map();
 
   for (const row of wellbeingRows) {
-    if (NORMALIZED_SKIP.has(normalizeName(row.name))) {
+    if (row.name && NORMALIZED_SKIP.has(normalizeName(row.name))) {
       skipped.push(row.name);
       continue;
     }
-    const { iso3, via } = resolveIso3(row.name);
-    if (!iso3) {
-      unresolved.push(row.name);
-      continue;
+
+    // Un ISO3 scritto nella tabella vale piu' di qualsiasi ricerca sul nome:
+    // e' esplicito, e toglie di mezzo il problema delle grafie.
+    let iso3;
+    let via;
+    if (row.iso3) {
+      if (!/^[A-Z]{3}$/.test(row.iso3)) {
+        unresolved.push(`${row.iso3} (codice malformato${row.name ? `, riga "${row.name}"` : ''})`);
+        continue;
+      }
+      iso3 = row.iso3;
+      via = 'codice nella tabella';
+    } else {
+      ({ iso3, via } = resolveIso3(row.name));
+      if (!iso3) {
+        unresolved.push(row.name);
+        continue;
+      }
     }
-    joinMap.push({ whrName: row.name, iso3, via });
+    joinMap.push({ whrName: row.name || iso3, iso3, via });
     if (wellbeingByIso.has(iso3)) {
-      duplicates.push(`${row.name} -> ${iso3} (gia' assegnato a "${wellbeingByIso.get(iso3).name}")`);
+      duplicates.push(`${row.name || iso3} -> ${iso3} (gia' assegnato a "${wellbeingByIso.get(iso3).name || iso3}")`);
       continue;
     }
     wellbeingByIso.set(iso3, { ...row, iso3 });
@@ -663,16 +768,17 @@ function printReport({ report, complete, suicide, geo, w }) {
 
   console.log('\nCopertura');
   line('righe nella fonte WHR', report.whrRows);
-  line('paesi nella fonte OMS', suicide.byIso.size + ` (anno ${suicide.year})`);
+  line('paesi nella fonte OMS', suicide.byIso.size + (suicide.year ? ` (anno ${suicide.year})` : ' (anno non dichiarato)'));
   line('paesi con dati completi', report.countriesWithData);
   line('solo benessere (manca OMS)', report.wellbeingOnly.length);
   line('solo suicidi (manca WHR)', report.suicideOnly.length);
   line('entita senza codice ISO', report.skippedNoIsoCode.length);
 
-  const viaTable = report.join.filter((j) => j.via === 'tabella').length;
+  const conta = (via) => report.join.filter((j) => j.via === via).length;
   console.log('\nJoin');
-  line('risolti da src/iso-lookup.js', viaTable);
-  line('risolti da nome ISO inglese', report.join.length - viaTable);
+  line('codice ISO3 gia nella tabella', conta('codice nella tabella'));
+  line('risolti da src/iso-lookup.js', conta('tabella'));
+  line('risolti da nome ISO inglese', conta('ISO en'));
   line('righe aggregate scartate', report.suicideAggregateRowsDropped);
   line('OMS solo con anni precedenti', report.suicideOlderYearOnly.length);
 
@@ -690,7 +796,7 @@ function printReport({ report, complete, suicide, geo, w }) {
   show('Con benessere ma senza dato OMS', report.wellbeingOnly, (c) => `${c.iso3} ${c.name}`);
   show('Con dato OMS ma non nel WHR', report.suicideOnly, (c) => `${c.iso3} ${c.name}`);
   show(
-    `Scartati: dato OMS piu vecchio di ${report.suicideYear}`,
+    `Scartati: dato OMS piu vecchio di ${report.suicideYear ?? "l'anno piu recente"}`,
     report.suicideOlderYearOnly,
     (c) => `${c.iso3} (${c.year})`,
   );
