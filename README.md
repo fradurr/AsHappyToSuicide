@@ -8,16 +8,25 @@ Il brief completo è in [`BRIEF-mappa-felicita.md`](./BRIEF-mappa-felicita.md).
 
 ## Stato
 
-Fatto lo strato dati; il frontend non è ancora scritto (era il punto di fermata
-concordato: prima si guarda la copertura, poi si disegna la mappa).
-
 | | |
 |---|---|
 | `scripts/build-data.js` | fatto, con test |
 | `src/iso-lookup.js` | fatto |
 | `public/geo/countries-110m.json` | committato (Natural Earth 1:110m) |
+| mappa, zoom/pan, pannello a due livelli | fatto |
 | `public/data/countries.json` | **da generare**: servono le due fonti |
-| mappa, pannello a due livelli, pagina metodo | da fare |
+| identità visiva | segnaposto, da rifare |
+| pagina «Metodo» | da fare |
+
+### Dati di esempio
+
+Finché le fonti vere non sono in `data/sources/`, il sito ripiega su
+`public/data/countries.placeholder.json`: **numeri inventati**, generati da
+`npm run placeholder`, che servono solo a poter guardare la mappa funzionare.
+Quando ci sono, il sito ci mette sopra un avviso giallo a tutta larghezza.
+
+**Prima di pubblicare quel file va cancellato.** È l'unica cosa nel repo che
+potrebbe far sembrare reali dei numeri che non lo sono.
 
 ## Comandi
 
@@ -27,6 +36,7 @@ npm run build:data          # unisce le fonti e scrive public/data/countries.jso
 npm test                    # 16 test sul join, sui percentili e sui fallimenti
 npm run dev                 # server di sviluppo Vite
 npm run build               # build statica del sito
+npm run placeholder         # dati FINTI, solo per vedere la mappa girare
 ```
 
 `build:data` e `build` sono separati di proposito: le fonti cambiano una volta

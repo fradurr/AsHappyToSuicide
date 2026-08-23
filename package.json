@@ -8,7 +8,8 @@
     "build:data": "node scripts/build-data.js",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "placeholder": "node scripts/make-placeholder.js"
   },
   "repository": {
     "type": "git",

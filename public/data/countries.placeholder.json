@@ -1,0 +1,1541 @@
+{
+  "meta": {
+    "placeholder": true,
+    "avviso": "DATI INVENTATI. Nessun rapporto con benessere o mortalita reali.",
+    "weight": 0.25,
+    "countriesWithData": 153,
+    "generated": "2026-08-23"
+  },
+  "countries": {
+    "LKA": {
+      "name": "Sri Lanka",
+      "nameEn": "Sri Lanka",
+      "index": 94.2,
+      "whr": 7.73,
+      "suicide": 5.9,
+      "rank": 1,
+      "rankWhr": 6,
+      "rankDelta": 5
+    },
+    "MDG": {
+      "name": "Madagascar",
+      "nameEn": "Madagascar",
+      "index": 93.6,
+      "whr": 7.54,
+      "suicide": 2.7,
+      "rank": 2,
+      "rankWhr": 12,
+      "rankDelta": 10
+    },
+    "IRQ": {
+      "name": "Iraq",
+      "nameEn": "Iraq",
+      "index": 92.3,
+      "whr": 7.72,
+      "suicide": 6.8,
+      "rank": 3,
+      "rankWhr": 7,
+      "rankDelta": 4
+    },
+    "PAK": {
+      "name": "Pakistan",
+      "nameEn": "Pakistan",
+      "index": 89.6,
+      "whr": 7.56,
+      "suicide": 7.9,
+      "rank": 4,
+      "rankWhr": 10,
+      "rankDelta": 6
+    },
+    "BRN": {
+      "name": "Brunei",
+      "nameEn": "Brunei Darussalam",
+      "index": 89.5,
+      "whr": 7.91,
+      "suicide": 12,
+      "rank": 5,
+      "rankWhr": 2,
+      "rankDelta": -3
+    },
+    "ATA": {
+      "name": "Antartide",
+      "nameEn": "Antarctica",
+      "index": 89.1,
+      "whr": 7.92,
+      "suicide": 13.4,
+      "rank": 6,
+      "rankWhr": 1,
+      "rankDelta": -5
+    },
+    "AUS": {
+      "name": "Australia",
+      "nameEn": "Australia",
+      "index": 88.7,
+      "whr": 7.44,
+      "suicide": 6.7,
+      "rank": 7,
+      "rankWhr": 16,
+      "rankDelta": 9
+    },
+    "DOM": {
+      "name": "Repubblica Dominicana",
+      "nameEn": "Dominican Republic",
+      "index": 86.7,
+      "whr": 7.29,
+      "suicide": 6.8,
+      "rank": 8,
+      "rankWhr": 18,
+      "rankDelta": 10
+    },
+    "SWZ": {
+      "name": "Eswatini",
+      "nameEn": "Eswatini",
+      "index": 84.7,
+      "whr": 7.53,
+      "suicide": 11.6,
+      "rank": 9,
+      "rankWhr": 14,
+      "rankDelta": 5
+    },
+    "ISR": {
+      "name": "Israele",
+      "nameEn": "Israel",
+      "index": 84,
+      "whr": 6.99,
+      "suicide": 2.2,
+      "rank": 10,
+      "rankWhr": 32,
+      "rankDelta": 22
+    },
+    "BWA": {
+      "name": "Botswana",
+      "nameEn": "Botswana",
+      "index": 83.2,
+      "whr": 7.09,
+      "suicide": 6.8,
+      "rank": 11,
+      "rankWhr": 26,
+      "rankDelta": 15
+    },
+    "KOR": {
+      "name": "Corea del Sud",
+      "nameEn": "South Korea",
+      "index": 82.9,
+      "whr": 7.71,
+      "suicide": 17.2,
+      "rank": 12,
+      "rankWhr": 8,
+      "rankDelta": -4
+    },
+    "QAT": {
+      "name": "Qatar",
+      "nameEn": "Qatar",
+      "index": 81.7,
+      "whr": 7.41,
+      "suicide": 13,
+      "rank": 13,
+      "rankWhr": 17,
+      "rankDelta": 4
+    },
+    "PHL": {
+      "name": "Filippine",
+      "nameEn": "Philippines",
+      "index": 81.3,
+      "whr": 7.07,
+      "suicide": 7.3,
+      "rank": 14,
+      "rankWhr": 28,
+      "rankDelta": 14
+    },
+    "DEU": {
+      "name": "Germania",
+      "nameEn": "Germany",
+      "index": 80.3,
+      "whr": 7.08,
+      "suicide": 9.6,
+      "rank": 15,
+      "rankWhr": 27,
+      "rankDelta": 12
+    },
+    "CZE": {
+      "name": "Repubblica Ceca",
+      "nameEn": "Czech Republic",
+      "index": 80.1,
+      "whr": 6.88,
+      "suicide": 5.3,
+      "rank": 16,
+      "rankWhr": 35,
+      "rankDelta": 19
+    },
+    "MNG": {
+      "name": "Mongolia",
+      "nameEn": "Mongolia",
+      "index": 80.1,
+      "whr": 7.79,
+      "suicide": 21.6,
+      "rank": 16,
+      "rankWhr": 5,
+      "rankDelta": -11
+    },
+    "MYS": {
+      "name": "Malesia",
+      "nameEn": "Malaysia",
+      "index": 80.1,
+      "whr": 6.9,
+      "suicide": 6.5,
+      "rank": 16,
+      "rankWhr": 34,
+      "rankDelta": 18
+    },
+    "IRN": {
+      "name": "Iran",
+      "nameEn": "Islamic Republic of Iran",
+      "index": 79.3,
+      "whr": 7.55,
+      "suicide": 18.9,
+      "rank": 19,
+      "rankWhr": 11,
+      "rankDelta": -8
+    },
+    "MLI": {
+      "name": "Mali",
+      "nameEn": "Mali",
+      "index": 78.9,
+      "whr": 7.2,
+      "suicide": 12.7,
+      "rank": 20,
+      "rankWhr": 23,
+      "rankDelta": 3
+    },
+    "EST": {
+      "name": "Estonia",
+      "nameEn": "Estonia",
+      "index": 77.1,
+      "whr": 7.03,
+      "suicide": 11.3,
+      "rank": 21,
+      "rankWhr": 30,
+      "rankDelta": 9
+    },
+    "BGD": {
+      "name": "Bangladesh",
+      "nameEn": "Bangladesh",
+      "index": 76.8,
+      "whr": 7.05,
+      "suicide": 11.8,
+      "rank": 22,
+      "rankWhr": 29,
+      "rankDelta": 7
+    },
+    "ERI": {
+      "name": "Eritrea",
+      "nameEn": "Eritrea",
+      "index": 76.3,
+      "whr": 6.88,
+      "suicide": 8.5,
+      "rank": 23,
+      "rankWhr": 36,
+      "rankDelta": 13
+    },
+    "HTI": {
+      "name": "Haiti",
+      "nameEn": "Haiti",
+      "index": 76.3,
+      "whr": 7.25,
+      "suicide": 17.4,
+      "rank": 23,
+      "rankWhr": 20,
+      "rankDelta": -3
+    },
+    "LUX": {
+      "name": "Lussemburgo",
+      "nameEn": "Luxembourg",
+      "index": 76.2,
+      "whr": 7.27,
+      "suicide": 17.6,
+      "rank": 25,
+      "rankWhr": 19,
+      "rankDelta": -6
+    },
+    "DZA": {
+      "name": "Algeria",
+      "nameEn": "Algeria",
+      "index": 76,
+      "whr": 7.87,
+      "suicide": 25,
+      "rank": 26,
+      "rankWhr": 3,
+      "rankDelta": -23
+    },
+    "CMR": {
+      "name": "Camerun",
+      "nameEn": "Cameroon",
+      "index": 75.7,
+      "whr": 7.7,
+      "suicide": 22.9,
+      "rank": 27,
+      "rankWhr": 9,
+      "rankDelta": -18
+    },
+    "VNM": {
+      "name": "Vietnam",
+      "nameEn": "Vietnam",
+      "index": 75.5,
+      "whr": 7.23,
+      "suicide": 17.6,
+      "rank": 28,
+      "rankWhr": 21,
+      "rankDelta": -7
+    },
+    "DJI": {
+      "name": "Gibuti",
+      "nameEn": "Djibouti",
+      "index": 75,
+      "whr": 6.6,
+      "suicide": 2.4,
+      "rank": 29,
+      "rankWhr": 50,
+      "rankDelta": 21
+    },
+    "MWI": {
+      "name": "Malawi",
+      "nameEn": "Malawi",
+      "index": 75,
+      "whr": 7.82,
+      "suicide": 25.6,
+      "rank": 29,
+      "rankWhr": 4,
+      "rankDelta": -25
+    },
+    "KGZ": {
+      "name": "Kirghizistan",
+      "nameEn": "Kyrgyzstan",
+      "index": 73.7,
+      "whr": 6.59,
+      "suicide": 3.7,
+      "rank": 31,
+      "rankWhr": 51,
+      "rankDelta": 20
+    },
+    "GRC": {
+      "name": "Grecia",
+      "nameEn": "Greece",
+      "index": 73,
+      "whr": 7.15,
+      "suicide": 18.3,
+      "rank": 32,
+      "rankWhr": 24,
+      "rankDelta": -8
+    },
+    "UKR": {
+      "name": "Ucraina",
+      "nameEn": "Ukraine",
+      "index": 73,
+      "whr": 7.54,
+      "suicide": 23.4,
+      "rank": 32,
+      "rankWhr": 13,
+      "rankDelta": -19
+    },
+    "AFG": {
+      "name": "Afghanistan",
+      "nameEn": "Afghanistan",
+      "index": 71.7,
+      "whr": 6.66,
+      "suicide": 8.2,
+      "rank": 34,
+      "rankWhr": 46,
+      "rankDelta": 12
+    },
+    "FRA": {
+      "name": "Francia",
+      "nameEn": "France",
+      "index": 71.1,
+      "whr": 7.45,
+      "suicide": 24.8,
+      "rank": 35,
+      "rankWhr": 15,
+      "rankDelta": -20
+    },
+    "YEM": {
+      "name": "Yemen",
+      "nameEn": "Yemen",
+      "index": 70.9,
+      "whr": 6.48,
+      "suicide": 5.3,
+      "rank": 36,
+      "rankWhr": 54,
+      "rankDelta": 18
+    },
+    "JOR": {
+      "name": "Giordania",
+      "nameEn": "Jordan",
+      "index": 70.1,
+      "whr": 6.74,
+      "suicide": 10.5,
+      "rank": 37,
+      "rankWhr": 45,
+      "rankDelta": 8
+    },
+    "TWN": {
+      "name": "Repubblica di Cina",
+      "nameEn": "Taiwan, Province of China",
+      "index": 69.1,
+      "whr": 6.41,
+      "suicide": 6.8,
+      "rank": 38,
+      "rankWhr": 55,
+      "rankDelta": 17
+    },
+    "SSD": {
+      "name": "Sudan del Sud",
+      "nameEn": "South Sudan",
+      "index": 68.8,
+      "whr": 7.22,
+      "suicide": 23.3,
+      "rank": 39,
+      "rankWhr": 22,
+      "rankDelta": -17
+    },
+    "GBR": {
+      "name": "Regno Unito",
+      "nameEn": "United Kingdom",
+      "index": 67.9,
+      "whr": 5.84,
+      "suicide": 1.6,
+      "rank": 40,
+      "rankWhr": 66,
+      "rankDelta": 26
+    },
+    "BRA": {
+      "name": "Brasile",
+      "nameEn": "Brazil",
+      "index": 67.6,
+      "whr": 7.14,
+      "suicide": 23,
+      "rank": 41,
+      "rankWhr": 25,
+      "rankDelta": -16
+    },
+    "JAM": {
+      "name": "Giamaica",
+      "nameEn": "Jamaica",
+      "index": 67.4,
+      "whr": 6.86,
+      "suicide": 16.9,
+      "rank": 42,
+      "rankWhr": 40,
+      "rankDelta": -2
+    },
+    "SUR": {
+      "name": "Suriname",
+      "nameEn": "Suriname",
+      "index": 67.1,
+      "whr": 6.86,
+      "suicide": 17.4,
+      "rank": 43,
+      "rankWhr": 39,
+      "rankDelta": -4
+    },
+    "BHS": {
+      "name": "Bahamas",
+      "nameEn": "Bahamas",
+      "index": 66.4,
+      "whr": 6.76,
+      "suicide": 15.7,
+      "rank": 44,
+      "rankWhr": 44,
+      "rankDelta": 0
+    },
+    "SEN": {
+      "name": "Senegal",
+      "nameEn": "Senegal",
+      "index": 64.5,
+      "whr": 6.63,
+      "suicide": 16.6,
+      "rank": 45,
+      "rankWhr": 47,
+      "rankDelta": 2
+    },
+    "BOL": {
+      "name": "Bolivia",
+      "nameEn": "Bolivia",
+      "index": 63.8,
+      "whr": 6.15,
+      "suicide": 8.8,
+      "rank": 46,
+      "rankWhr": 61,
+      "rankDelta": 15
+    },
+    "MKD": {
+      "name": "Macedonia del Nord",
+      "nameEn": "The Republic of North Macedonia",
+      "index": 63.7,
+      "whr": 6.35,
+      "suicide": 11.4,
+      "rank": 47,
+      "rankWhr": 57,
+      "rankDelta": 10
+    },
+    "HUN": {
+      "name": "Ungheria",
+      "nameEn": "Hungary",
+      "index": 63,
+      "whr": 5.7,
+      "suicide": 3.3,
+      "rank": 48,
+      "rankWhr": 73,
+      "rankDelta": 25
+    },
+    "LBR": {
+      "name": "Liberia",
+      "nameEn": "Liberia",
+      "index": 63,
+      "whr": 6.77,
+      "suicide": 19.6,
+      "rank": 48,
+      "rankWhr": 43,
+      "rankDelta": -5
+    },
+    "USA": {
+      "name": "Stati Uniti d'America",
+      "nameEn": "United States of America",
+      "index": 63,
+      "whr": 5.71,
+      "suicide": 4.9,
+      "rank": 48,
+      "rankWhr": 71,
+      "rankDelta": 23
+    },
+    "NAM": {
+      "name": "Namibia",
+      "nameEn": "Namibia",
+      "index": 62.7,
+      "whr": 6.87,
+      "suicide": 22.6,
+      "rank": 51,
+      "rankWhr": 37,
+      "rankDelta": -14
+    },
+    "MDA": {
+      "name": "Moldavia",
+      "nameEn": "Moldova, Republic of",
+      "index": 62.2,
+      "whr": 6.19,
+      "suicide": 11.7,
+      "rank": 52,
+      "rankWhr": 59,
+      "rankDelta": 7
+    },
+    "AZE": {
+      "name": "Azerbaigian",
+      "nameEn": "Azerbaijan",
+      "index": 61.7,
+      "whr": 6.94,
+      "suicide": 25,
+      "rank": 53,
+      "rankWhr": 33,
+      "rankDelta": -20
+    },
+    "TTO": {
+      "name": "Trinidad e Tobago",
+      "nameEn": "Trinidad and Tobago",
+      "index": 61.7,
+      "whr": 5.65,
+      "suicide": 4.3,
+      "rank": 53,
+      "rankWhr": 74,
+      "rankDelta": 21
+    },
+    "ZWE": {
+      "name": "Zimbabwe",
+      "nameEn": "Zimbabwe",
+      "index": 60.9,
+      "whr": 5.93,
+      "suicide": 10.2,
+      "rank": 55,
+      "rankWhr": 64,
+      "rankDelta": 9
+    },
+    "ZMB": {
+      "name": "Zambia",
+      "nameEn": "Zambia",
+      "index": 60.7,
+      "whr": 7.02,
+      "suicide": 26.5,
+      "rank": 56,
+      "rankWhr": 31,
+      "rankDelta": -25
+    },
+    "PRK": {
+      "name": "Corea del Nord",
+      "nameEn": "North Korea",
+      "index": 60.4,
+      "whr": 6.36,
+      "suicide": 15.8,
+      "rank": 57,
+      "rankWhr": 56,
+      "rankDelta": -1
+    },
+    "LTU": {
+      "name": "Lituania",
+      "nameEn": "Lithuania",
+      "index": 59.5,
+      "whr": 6.63,
+      "suicide": 21.3,
+      "rank": 58,
+      "rankWhr": 48,
+      "rankDelta": -10
+    },
+    "OMN": {
+      "name": "Oman",
+      "nameEn": "Oman",
+      "index": 58.7,
+      "whr": 6.18,
+      "suicide": 15.7,
+      "rank": 59,
+      "rankWhr": 60,
+      "rankDelta": 1
+    },
+    "LAO": {
+      "name": "Laos",
+      "nameEn": "Lao People's Democratic Republic",
+      "index": 58.6,
+      "whr": 5.73,
+      "suicide": 10.2,
+      "rank": 60,
+      "rankWhr": 69,
+      "rankDelta": 9
+    },
+    "ISL": {
+      "name": "Islanda",
+      "nameEn": "Iceland",
+      "index": 58.4,
+      "whr": 5.33,
+      "suicide": 6.7,
+      "rank": 61,
+      "rankWhr": 77,
+      "rankDelta": 16
+    },
+    "GNQ": {
+      "name": "Guinea Equatoriale",
+      "nameEn": "Equatorial Guinea",
+      "index": 57.9,
+      "whr": 4.94,
+      "suicide": 2.9,
+      "rank": 62,
+      "rankWhr": 84,
+      "rankDelta": 22
+    },
+    "TCD": {
+      "name": "Ciad",
+      "nameEn": "Chad",
+      "index": 57.7,
+      "whr": 5.39,
+      "suicide": 7.2,
+      "rank": 63,
+      "rankWhr": 76,
+      "rankDelta": 13
+    },
+    "MEX": {
+      "name": "Messico",
+      "nameEn": "Mexico",
+      "index": 57.6,
+      "whr": 5.77,
+      "suicide": 11.9,
+      "rank": 64,
+      "rankWhr": 67,
+      "rankDelta": 3
+    },
+    "NGA": {
+      "name": "Nigeria",
+      "nameEn": "Nigeria",
+      "index": 57.1,
+      "whr": 6.24,
+      "suicide": 17.6,
+      "rank": 65,
+      "rankWhr": 58,
+      "rankDelta": -7
+    },
+    "CUB": {
+      "name": "Cuba",
+      "nameEn": "Cuba",
+      "index": 56.7,
+      "whr": 6.87,
+      "suicide": 27.4,
+      "rank": 66,
+      "rankWhr": 38,
+      "rankDelta": -28
+    },
+    "BLZ": {
+      "name": "Belize",
+      "nameEn": "Belize",
+      "index": 56.3,
+      "whr": 4.84,
+      "suicide": 3.2,
+      "rank": 67,
+      "rankWhr": 87,
+      "rankDelta": 20
+    },
+    "GRL": {
+      "name": "Groenlandia",
+      "nameEn": "Greenland",
+      "index": 56.2,
+      "whr": 6.62,
+      "suicide": 22.7,
+      "rank": 67,
+      "rankWhr": 49,
+      "rankDelta": -18
+    },
+    "PAN": {
+      "name": "Panamá",
+      "nameEn": "Panama",
+      "index": 56.2,
+      "whr": 6.85,
+      "suicide": 26.3,
+      "rank": 67,
+      "rankWhr": 41,
+      "rankDelta": -26
+    },
+    "PER": {
+      "name": "Perù",
+      "nameEn": "Peru",
+      "index": 55.4,
+      "whr": 6.83,
+      "suicide": 26.4,
+      "rank": 70,
+      "rankWhr": 42,
+      "rankDelta": -28
+    },
+    "CHE": {
+      "name": "Svizzera",
+      "nameEn": "Switzerland",
+      "index": 54.9,
+      "whr": 5.72,
+      "suicide": 14.1,
+      "rank": 71,
+      "rankWhr": 70,
+      "rankDelta": -1
+    },
+    "ATF": {
+      "name": "Territori Francesi del Sud",
+      "nameEn": "French Southern Territories",
+      "index": 54.4,
+      "whr": 5.27,
+      "suicide": 9.6,
+      "rank": 72,
+      "rankWhr": 79,
+      "rankDelta": 7
+    },
+    "GAB": {
+      "name": "Gabon",
+      "nameEn": "Gabon",
+      "index": 51,
+      "whr": 6.01,
+      "suicide": 21.7,
+      "rank": 73,
+      "rankWhr": 63,
+      "rankDelta": -10
+    },
+    "MOZ": {
+      "name": "Mozambico",
+      "nameEn": "Mozambique",
+      "index": 50.8,
+      "whr": 5.75,
+      "suicide": 19,
+      "rank": 74,
+      "rankWhr": 68,
+      "rankDelta": -6
+    },
+    "ROU": {
+      "name": "Romania",
+      "nameEn": "Romania",
+      "index": 50.7,
+      "whr": 6.55,
+      "suicide": 26.4,
+      "rank": 75,
+      "rankWhr": 52,
+      "rankDelta": -23
+    },
+    "XKX": {
+      "name": "XKX",
+      "nameEn": "XKX",
+      "index": 50.7,
+      "whr": 6.54,
+      "suicide": 25.7,
+      "rank": 75,
+      "rankWhr": 53,
+      "rankDelta": -22
+    },
+    "HRV": {
+      "name": "Croazia",
+      "nameEn": "Croatia",
+      "index": 50,
+      "whr": 6.05,
+      "suicide": 22.7,
+      "rank": 77,
+      "rankWhr": 62,
+      "rankDelta": -15
+    },
+    "ESP": {
+      "name": "Spagna",
+      "nameEn": "Spain",
+      "index": 49.8,
+      "whr": 4.68,
+      "suicide": 7.8,
+      "rank": 78,
+      "rankWhr": 91,
+      "rankDelta": 13
+    },
+    "CHL": {
+      "name": "Cile",
+      "nameEn": "Chile",
+      "index": 49.2,
+      "whr": 5.08,
+      "suicide": 14.4,
+      "rank": 79,
+      "rankWhr": 81,
+      "rankDelta": 2
+    },
+    "JPN": {
+      "name": "Giappone",
+      "nameEn": "Japan",
+      "index": 46.5,
+      "whr": 4.16,
+      "suicide": 4.2,
+      "rank": 80,
+      "rankWhr": 105,
+      "rankDelta": 25
+    },
+    "SLB": {
+      "name": "Isole Salomone",
+      "nameEn": "Solomon Islands",
+      "index": 46.5,
+      "whr": 5.88,
+      "suicide": 24.7,
+      "rank": 80,
+      "rankWhr": 65,
+      "rankDelta": -15
+    },
+    "NZL": {
+      "name": "Nuova Zelanda",
+      "nameEn": "New Zealand",
+      "index": 45.4,
+      "whr": 4.04,
+      "suicide": 4,
+      "rank": 82,
+      "rankWhr": 108,
+      "rankDelta": 26
+    },
+    "MRT": {
+      "name": "Mauritania",
+      "nameEn": "Mauritania",
+      "index": 45.1,
+      "whr": 3.9,
+      "suicide": 1.7,
+      "rank": 83,
+      "rankWhr": 112,
+      "rankDelta": 29
+    },
+    "CHN": {
+      "name": "Cina",
+      "nameEn": "People's Republic of China",
+      "index": 44.9,
+      "whr": 4.62,
+      "suicide": 11.9,
+      "rank": 84,
+      "rankWhr": 93,
+      "rankDelta": 9
+    },
+    "GTM": {
+      "name": "Guatemala",
+      "nameEn": "Guatemala",
+      "index": 44.6,
+      "whr": 4.59,
+      "suicide": 11.6,
+      "rank": 85,
+      "rankWhr": 95,
+      "rankDelta": 10
+    },
+    "ARM": {
+      "name": "Armenia",
+      "nameEn": "Armenia",
+      "index": 44.4,
+      "whr": 5,
+      "suicide": 17.6,
+      "rank": 86,
+      "rankWhr": 83,
+      "rankDelta": -3
+    },
+    "LBY": {
+      "name": "Libia",
+      "nameEn": "Libya",
+      "index": 43.4,
+      "whr": 3.95,
+      "suicide": 5.3,
+      "rank": 87,
+      "rankWhr": 110,
+      "rankDelta": 23
+    },
+    "GIN": {
+      "name": "Guinea",
+      "nameEn": "Guinea",
+      "index": 42.6,
+      "whr": 5.31,
+      "suicide": 22.6,
+      "rank": 88,
+      "rankWhr": 78,
+      "rankDelta": -10
+    },
+    "GEO": {
+      "name": "Georgia",
+      "nameEn": "Georgia",
+      "index": 42.3,
+      "whr": 5.42,
+      "suicide": 23.4,
+      "rank": 89,
+      "rankWhr": 75,
+      "rankDelta": -14
+    },
+    "AUT": {
+      "name": "Austria",
+      "nameEn": "Austria",
+      "index": 42.1,
+      "whr": 4.06,
+      "suicide": 7.4,
+      "rank": 90,
+      "rankWhr": 107,
+      "rankDelta": 17
+    },
+    "KHM": {
+      "name": "Cambogia",
+      "nameEn": "Cambodia",
+      "index": 41.6,
+      "whr": 3.8,
+      "suicide": 5.2,
+      "rank": 91,
+      "rankWhr": 114,
+      "rankDelta": 23
+    },
+    "UGA": {
+      "name": "Uganda",
+      "nameEn": "Uganda",
+      "index": 41.4,
+      "whr": 4.56,
+      "suicide": 13.3,
+      "rank": 92,
+      "rankWhr": 98,
+      "rankDelta": 6
+    },
+    "LVA": {
+      "name": "Lettonia",
+      "nameEn": "Latvia",
+      "index": 41.1,
+      "whr": 4.8,
+      "suicide": 18.9,
+      "rank": 93,
+      "rankWhr": 88,
+      "rankDelta": -5
+    },
+    "URY": {
+      "name": "Uruguay",
+      "nameEn": "Uruguay",
+      "index": 41.1,
+      "whr": 4.24,
+      "suicide": 11.8,
+      "rank": 93,
+      "rankWhr": 101,
+      "rankDelta": 8
+    },
+    "FIN": {
+      "name": "Finlandia",
+      "nameEn": "Finland",
+      "index": 40.3,
+      "whr": 3.57,
+      "suicide": 1.8,
+      "rank": 95,
+      "rankWhr": 121,
+      "rankDelta": 26
+    },
+    "TZA": {
+      "name": "Tanzania",
+      "nameEn": "United Republic of Tanzania",
+      "index": 40.3,
+      "whr": 4.89,
+      "suicide": 21.7,
+      "rank": 95,
+      "rankWhr": 85,
+      "rankDelta": -10
+    },
+    "UZB": {
+      "name": "Uzbekistan",
+      "nameEn": "Uzbekistan",
+      "index": 40.3,
+      "whr": 5.7,
+      "suicide": 26.9,
+      "rank": 95,
+      "rankWhr": 72,
+      "rankDelta": -23
+    },
+    "BFA": {
+      "name": "Burkina Faso",
+      "nameEn": "Burkina Faso",
+      "index": 39,
+      "whr": 3.5,
+      "suicide": 1.8,
+      "rank": 98,
+      "rankWhr": 124,
+      "rankDelta": 26
+    },
+    "TUN": {
+      "name": "Tunisia",
+      "nameEn": "Tunisia",
+      "index": 38.7,
+      "whr": 5.17,
+      "suicide": 24.9,
+      "rank": 99,
+      "rankWhr": 80,
+      "rankDelta": -19
+    },
+    "ETH": {
+      "name": "Etiopia",
+      "nameEn": "Ethiopia",
+      "index": 38.5,
+      "whr": 3.88,
+      "suicide": 8.4,
+      "rank": 100,
+      "rankWhr": 113,
+      "rankDelta": 13
+    },
+    "CYP": {
+      "name": "Cipro",
+      "nameEn": "Cyprus",
+      "index": 38.3,
+      "whr": 4.65,
+      "suicide": 20.2,
+      "rank": 101,
+      "rankWhr": 92,
+      "rankDelta": -9
+    },
+    "TLS": {
+      "name": "Timor Est",
+      "nameEn": "Timor-Leste",
+      "index": 38.3,
+      "whr": 3.98,
+      "suicide": 10.9,
+      "rank": 101,
+      "rankWhr": 109,
+      "rankDelta": 8
+    },
+    "GNB": {
+      "name": "Guinea-Bissau",
+      "nameEn": "Guinea-Bissau",
+      "index": 37.8,
+      "whr": 4.85,
+      "suicide": 22.8,
+      "rank": 103,
+      "rankWhr": 86,
+      "rankDelta": -17
+    },
+    "BTN": {
+      "name": "Bhutan",
+      "nameEn": "Bhutan",
+      "index": 37.3,
+      "whr": 4.16,
+      "suicide": 15.2,
+      "rank": 104,
+      "rankWhr": 104,
+      "rankDelta": 0
+    },
+    "SWE": {
+      "name": "Svezia",
+      "nameEn": "Sweden",
+      "index": 36.3,
+      "whr": 4.59,
+      "suicide": 21.4,
+      "rank": 105,
+      "rankWhr": 94,
+      "rankDelta": -11
+    },
+    "KEN": {
+      "name": "Kenya",
+      "nameEn": "Kenya",
+      "index": 35.2,
+      "whr": 5.07,
+      "suicide": 27,
+      "rank": 106,
+      "rankWhr": 82,
+      "rankDelta": -24
+    },
+    "PSE": {
+      "name": "Stato di Palestina",
+      "nameEn": "State of Palestine",
+      "index": 35.2,
+      "whr": 3.56,
+      "suicide": 7,
+      "rank": 106,
+      "rankWhr": 122,
+      "rankDelta": 16
+    },
+    "FJI": {
+      "name": "Figi",
+      "nameEn": "Fiji",
+      "index": 34.9,
+      "whr": 3.41,
+      "suicide": 6.2,
+      "rank": 108,
+      "rankWhr": 126,
+      "rankDelta": 18
+    },
+    "POL": {
+      "name": "Polonia",
+      "nameEn": "Poland",
+      "index": 34.7,
+      "whr": 4.25,
+      "suicide": 19.9,
+      "rank": 109,
+      "rankWhr": 100,
+      "rankDelta": -9
+    },
+    "KWT": {
+      "name": "Kuwait",
+      "nameEn": "Kuwait",
+      "index": 34.5,
+      "whr": 4.57,
+      "suicide": 21.9,
+      "rank": 110,
+      "rankWhr": 96,
+      "rankDelta": -14
+    },
+    "BEL": {
+      "name": "Belgio",
+      "nameEn": "Belgium",
+      "index": 34.2,
+      "whr": 4.22,
+      "suicide": 18.1,
+      "rank": 111,
+      "rankWhr": 103,
+      "rankDelta": -8
+    },
+    "TUR": {
+      "name": "Turchia",
+      "nameEn": "Türkiye",
+      "index": 33.9,
+      "whr": 4.56,
+      "suicide": 22.1,
+      "rank": 112,
+      "rankWhr": 97,
+      "rankDelta": -15
+    },
+    "VEN": {
+      "name": "Venezuela",
+      "nameEn": "Venezuela",
+      "index": 33.6,
+      "whr": 3.59,
+      "suicide": 10.2,
+      "rank": 113,
+      "rankWhr": 120,
+      "rankDelta": 7
+    },
+    "HND": {
+      "name": "Honduras",
+      "nameEn": "Honduras",
+      "index": 33.4,
+      "whr": 4.68,
+      "suicide": 25,
+      "rank": 114,
+      "rankWhr": 90,
+      "rankDelta": -24
+    },
+    "ECU": {
+      "name": "Ecuador",
+      "nameEn": "Ecuador",
+      "index": 33.2,
+      "whr": 4.71,
+      "suicide": 25.4,
+      "rank": 115,
+      "rankWhr": 89,
+      "rankDelta": -26
+    },
+    "GUY": {
+      "name": "Guyana",
+      "nameEn": "Guyana",
+      "index": 32.6,
+      "whr": 4.23,
+      "suicide": 21.4,
+      "rank": 116,
+      "rankWhr": 102,
+      "rankDelta": -14
+    },
+    "VUT": {
+      "name": "Vanuatu",
+      "nameEn": "Vanuatu",
+      "index": 32.4,
+      "whr": 3.51,
+      "suicide": 9.8,
+      "rank": 117,
+      "rankWhr": 123,
+      "rankDelta": 6
+    },
+    "CAN": {
+      "name": "Canada",
+      "nameEn": "Canada",
+      "index": 31.1,
+      "whr": 3.38,
+      "suicide": 9.4,
+      "rank": 118,
+      "rankWhr": 127,
+      "rankDelta": 9
+    },
+    "SDN": {
+      "name": "Sudan",
+      "nameEn": "Sudan",
+      "index": 30.6,
+      "whr": 3.63,
+      "suicide": 15.1,
+      "rank": 119,
+      "rankWhr": 118,
+      "rankDelta": -1
+    },
+    "CRI": {
+      "name": "Costa Rica",
+      "nameEn": "Costa Rica",
+      "index": 29.4,
+      "whr": 4.48,
+      "suicide": 24.8,
+      "rank": 120,
+      "rankWhr": 99,
+      "rankDelta": -21
+    },
+    "PNG": {
+      "name": "Papua Nuova Guinea",
+      "nameEn": "Papua New Guinea",
+      "index": 29.1,
+      "whr": 3.63,
+      "suicide": 16.6,
+      "rank": 121,
+      "rankWhr": 119,
+      "rankDelta": -2
+    },
+    "TGO": {
+      "name": "Togo",
+      "nameEn": "Togo",
+      "index": 28.3,
+      "whr": 2.88,
+      "suicide": 6.8,
+      "rank": 122,
+      "rankWhr": 137,
+      "rankDelta": 15
+    },
+    "NLD": {
+      "name": "Paesi Bassi",
+      "nameEn": "Netherlands",
+      "index": 26.5,
+      "whr": 4.08,
+      "suicide": 24.6,
+      "rank": 123,
+      "rankWhr": 106,
+      "rankDelta": -17
+    },
+    "SOM": {
+      "name": "Somalia",
+      "nameEn": "Somalia",
+      "index": 24,
+      "whr": 2.56,
+      "suicide": 4.1,
+      "rank": 124,
+      "rankWhr": 151,
+      "rankDelta": 27
+    },
+    "LBN": {
+      "name": "Libano",
+      "nameEn": "Lebanon",
+      "index": 23.8,
+      "whr": 3.09,
+      "suicide": 15.4,
+      "rank": 125,
+      "rankWhr": 131,
+      "rankDelta": 6
+    },
+    "RWA": {
+      "name": "Ruanda",
+      "nameEn": "Rwanda",
+      "index": 23.8,
+      "whr": 3.7,
+      "suicide": 22.2,
+      "rank": 125,
+      "rankWhr": 117,
+      "rankDelta": -8
+    },
+    "COL": {
+      "name": "Colombia",
+      "nameEn": "Colombia",
+      "index": 23.5,
+      "whr": 3.72,
+      "suicide": 22.7,
+      "rank": 127,
+      "rankWhr": 116,
+      "rankDelta": -11
+    },
+    "KAZ": {
+      "name": "Kazakistan",
+      "nameEn": "Kazakhstan",
+      "index": 23.4,
+      "whr": 3.22,
+      "suicide": 17,
+      "rank": 128,
+      "rankWhr": 129,
+      "rankDelta": 1
+    },
+    "GHA": {
+      "name": "Ghana",
+      "nameEn": "Ghana",
+      "index": 22.9,
+      "whr": 3.93,
+      "suicide": 25,
+      "rank": 129,
+      "rankWhr": 111,
+      "rankDelta": -18
+    },
+    "BGR": {
+      "name": "Bulgaria",
+      "nameEn": "Bulgaria",
+      "index": 22.2,
+      "whr": 3.79,
+      "suicide": 24.2,
+      "rank": 130,
+      "rankWhr": 115,
+      "rankDelta": -15
+    },
+    "SRB": {
+      "name": "Serbia",
+      "nameEn": "Serbia",
+      "index": 21.7,
+      "whr": 2.55,
+      "suicide": 6.5,
+      "rank": 131,
+      "rankWhr": 152,
+      "rankDelta": 21
+    },
+    "COD": {
+      "name": "Repubblica Democratica del Congo",
+      "nameEn": "Democratic Republic of the Congo",
+      "index": 21.4,
+      "whr": 2.83,
+      "suicide": 13.1,
+      "rank": 132,
+      "rankWhr": 139,
+      "rankDelta": 7
+    },
+    "PRI": {
+      "name": "Porto Rico",
+      "nameEn": "Puerto Rico",
+      "index": 21.2,
+      "whr": 2.65,
+      "suicide": 9.6,
+      "rank": 133,
+      "rankWhr": 146,
+      "rankDelta": 13
+    },
+    "NIC": {
+      "name": "Nicaragua",
+      "nameEn": "Nicaragua",
+      "index": 19.7,
+      "whr": 3.1,
+      "suicide": 19.9,
+      "rank": 134,
+      "rankWhr": 130,
+      "rankDelta": -4
+    },
+    "SYR": {
+      "name": "Siria",
+      "nameEn": "Syrian Arab Republic",
+      "index": 19.4,
+      "whr": 2.88,
+      "suicide": 16.7,
+      "rank": 135,
+      "rankWhr": 138,
+      "rankDelta": 3
+    },
+    "ZAF": {
+      "name": "Sudafrica",
+      "nameEn": "South Africa",
+      "index": 19.2,
+      "whr": 3.32,
+      "suicide": 21.6,
+      "rank": 136,
+      "rankWhr": 128,
+      "rankDelta": -8
+    },
+    "IDN": {
+      "name": "Indonesia",
+      "nameEn": "Indonesia",
+      "index": 18.9,
+      "whr": 2.57,
+      "suicide": 10,
+      "rank": 137,
+      "rankWhr": 150,
+      "rankDelta": 13
+    },
+    "MNE": {
+      "name": "Montenegro",
+      "nameEn": "Montenegro",
+      "index": 18.6,
+      "whr": 2.9,
+      "suicide": 17.7,
+      "rank": 138,
+      "rankWhr": 135,
+      "rankDelta": -3
+    },
+    "SLV": {
+      "name": "El Salvador",
+      "nameEn": "El Salvador",
+      "index": 18.3,
+      "whr": 2.7,
+      "suicide": 14.2,
+      "rank": 139,
+      "rankWhr": 144,
+      "rankDelta": 5
+    },
+    "ITA": {
+      "name": "Italia",
+      "nameEn": "Italy",
+      "index": 17.8,
+      "whr": 2.77,
+      "suicide": 16.9,
+      "rank": 140,
+      "rankWhr": 141,
+      "rankDelta": 1
+    },
+    "EGY": {
+      "name": "Egitto",
+      "nameEn": "Egypt",
+      "index": 16.9,
+      "whr": 2.79,
+      "suicide": 17.4,
+      "rank": 141,
+      "rankWhr": 140,
+      "rankDelta": -1
+    },
+    "RUS": {
+      "name": "Russia",
+      "nameEn": "Russian Federation",
+      "index": 16.9,
+      "whr": 2.92,
+      "suicide": 21.4,
+      "rank": 141,
+      "rankWhr": 134,
+      "rankDelta": -7
+    },
+    "NER": {
+      "name": "Niger",
+      "nameEn": "Niger",
+      "index": 15.6,
+      "whr": 3,
+      "suicide": 22.6,
+      "rank": 143,
+      "rankWhr": 133,
+      "rankDelta": -10
+    },
+    "PRY": {
+      "name": "Paraguay",
+      "nameEn": "Paraguay",
+      "index": 15.6,
+      "whr": 3.45,
+      "suicide": 25.3,
+      "rank": 143,
+      "rankWhr": 125,
+      "rankDelta": -18
+    },
+    "BIH": {
+      "name": "Bosnia ed Erzegovina",
+      "nameEn": "Bosnia and Herzegovina",
+      "index": 15.1,
+      "whr": 2.7,
+      "suicide": 17.2,
+      "rank": 145,
+      "rankWhr": 145,
+      "rankDelta": 0
+    },
+    "ARE": {
+      "name": "Emirati Arabi Uniti",
+      "nameEn": "United Arab Emirates",
+      "index": 14.6,
+      "whr": 3.01,
+      "suicide": 23.1,
+      "rank": 146,
+      "rankWhr": 132,
+      "rankDelta": -14
+    },
+    "LSO": {
+      "name": "Lesotho",
+      "nameEn": "Lesotho",
+      "index": 14,
+      "whr": 2.62,
+      "suicide": 17.4,
+      "rank": 147,
+      "rankWhr": 147,
+      "rankDelta": 0
+    },
+    "BDI": {
+      "name": "Burundi",
+      "nameEn": "Burundi",
+      "index": 13.5,
+      "whr": 2.76,
+      "suicide": 20.6,
+      "rank": 148,
+      "rankWhr": 142,
+      "rankDelta": -6
+    },
+    "FLK": {
+      "name": "Isole Falkland",
+      "nameEn": "Falkland Islands (Malvinas)",
+      "index": 13.5,
+      "whr": 2.5,
+      "suicide": 14.6,
+      "rank": 148,
+      "rankWhr": 153,
+      "rankDelta": 5
+    },
+    "MAR": {
+      "name": "Marocco",
+      "nameEn": "Morocco",
+      "index": 12.8,
+      "whr": 2.74,
+      "suicide": 20.8,
+      "rank": 150,
+      "rankWhr": 143,
+      "rankDelta": -7
+    },
+    "ALB": {
+      "name": "Albania",
+      "nameEn": "Albania",
+      "index": 12,
+      "whr": 2.9,
+      "suicide": 23.8,
+      "rank": 151,
+      "rankWhr": 136,
+      "rankDelta": -15
+    },
+    "ESH": {
+      "name": "Sahara Occidentale",
+      "nameEn": "Western Sahara",
+      "index": 7.9,
+      "whr": 2.58,
+      "suicide": 22.4,
+      "rank": 152,
+      "rankWhr": 149,
+      "rankDelta": -3
+    },
+    "CIV": {
+      "name": "Costa d'Avorio",
+      "nameEn": "Cote d'Ivoire",
+      "index": 3.6,
+      "whr": 2.59,
+      "suicide": 26.1,
+      "rank": 153,
+      "rankWhr": 148,
+      "rankDelta": -5
+    }
+  }
+}

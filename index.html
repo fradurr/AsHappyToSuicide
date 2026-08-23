@@ -4,10 +4,51 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Indice di felicità corretto per i suicidi</title>
+    <link rel="stylesheet" href="/src/index.css" />
   </head>
   <body>
-    <!-- Segnaposto: il frontend (mappa + pannello a due livelli) non e' ancora scritto. -->
-    <main id="app"></main>
+    <div id="avviso" class="avviso" hidden></div>
+
+    <div class="scena">
+      <div class="mappa-wrap" id="mappa-wrap">
+        <svg id="mappa" role="img" aria-label="Mappa mondiale dell'indice di felicità corretto"></svg>
+      </div>
+
+      <aside id="pannello" class="pannello" aria-live="polite">
+        <button type="button" id="chiudi" class="chiudi" aria-label="Chiudi il pannello">×</button>
+
+        <p class="pannello-paese" id="paese"></p>
+
+        <!-- Livello 1: il solo indice. Livello 2 si apre da qui. -->
+        <button type="button" id="indice-btn" class="indice-btn" aria-expanded="false" aria-controls="dettagli">
+          <span class="indice-valore" id="indice"></span>
+          <span class="indice-hint">com'è calcolato <span aria-hidden="true">›</span></span>
+        </button>
+
+        <!-- Livello 2 -->
+        <div id="dettagli" class="dettagli" hidden>
+          <dl class="componenti">
+            <div>
+              <dt>Benessere percepito <span class="unita">(0–10)</span></dt>
+              <dd id="whr"></dd>
+            </div>
+            <div>
+              <dt>Mortalità per suicidio <span class="unita">(per 100.000)</span></dt>
+              <dd id="suicidi"></dd>
+            </div>
+          </dl>
+          <p class="posizioni" id="posizioni"></p>
+        </div>
+
+        <p class="senza-dati" id="senza-dati" hidden></p>
+      </aside>
+    </div>
+
+    <footer class="footer">
+      <span id="footer-testo">Segnaposto — identità visiva e pagina «Metodo» da fare.</span>
+      <span class="ascolto">Telefono Amico 02 2327 2327 · numero gratuito 800 86 00 22</span>
+    </footer>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

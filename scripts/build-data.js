@@ -461,7 +461,7 @@ const round = (x, digits) => Number(x.toFixed(digits));
 // Geometrie: quali paesi la mappa e' in grado di disegnare
 // ---------------------------------------------------------------------------
 
-function readGeometryIso3() {
+export function readGeometryIso3() {
   if (!fs.existsSync(GEO_FILE)) {
     fail(
       `Manca il file delle geometrie: ${rel(GEO_FILE)}`,
