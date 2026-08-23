@@ -107,7 +107,8 @@ body.pannello-aperto .mappa-wrap {
 }
 body.pannello-aperto .pannello { transform: translateX(0); }
 /* [hidden] vale display:none solo se nessuna regola piu' specifica dice altro. */
-.indice-btn[hidden],
+.indice-blocco[hidden],
+.dettagli[hidden],
 .senza-dati[hidden] { display: none; }
 
 .chiudi {
@@ -133,21 +134,12 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   color: var(--testo-tenue);
 }
 
-/* --- livello 1: l'indice -------------------------------------------------- */
+/* --- l'indice ------------------------------------------------------------- */
 
-.indice-btn {
-  display: block;
-  width: 100%;
-  padding: 4px 0 10px;
-  border: 0;
-  border-bottom: 1px dashed #b9c0c8;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  color: inherit;
-  font: inherit;
+.indice-blocco {
+  padding: 4px 0 12px;
+  border-bottom: 1px solid var(--bordo);
 }
-.indice-btn:hover .indice-hint { color: var(--testo); }
 
 .indice-valore {
   display: block;
@@ -158,22 +150,18 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   font-variant-numeric: tabular-nums;
 }
 
-.indice-hint {
+.indice-etichetta {
   display: inline-block;
-  margin-top: 10px;
-  font-size: 13px;
+  margin-top: 8px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--testo-tenue);
 }
-.indice-btn[aria-expanded="true"] .indice-hint span { transform: rotate(90deg); }
-.indice-hint span {
-  display: inline-block;
-  transition: transform var(--durata) ease;
-}
 
-/* --- livello 2: le componenti --------------------------------------------- */
+/* --- le componenti -------------------------------------------------------- */
 
-.dettagli { padding-top: 18px; }
-.dettagli[hidden] { display: none; }
+.dettagli { padding-top: 6px; }
 
 .componenti { margin: 0; }
 .componenti > div {

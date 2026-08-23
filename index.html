@@ -19,14 +19,12 @@
 
         <p class="pannello-paese" id="paese"></p>
 
-        <!-- Livello 1: il solo indice. Livello 2 si apre da qui. -->
-        <button type="button" id="indice-btn" class="indice-btn" aria-expanded="false" aria-controls="dettagli">
+        <div class="indice-blocco" id="indice-blocco">
           <span class="indice-valore" id="indice"></span>
-          <span class="indice-hint">com'è calcolato <span aria-hidden="true">›</span></span>
-        </button>
+          <span class="indice-etichetta">indice corretto</span>
+        </div>
 
-        <!-- Livello 2 -->
-        <div id="dettagli" class="dettagli" hidden>
+        <div id="dettagli" class="dettagli">
           <dl class="componenti">
             <div>
               <dt>Benessere percepito <span class="unita">(0–10)</span></dt>

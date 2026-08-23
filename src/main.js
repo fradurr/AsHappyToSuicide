@@ -56,7 +56,7 @@ const el = {
   scena: document.querySelector('.scena'),
   pannello: document.getElementById('pannello'),
   paese: document.getElementById('paese'),
-  indiceBtn: document.getElementById('indice-btn'),
+  indiceBlocco: document.getElementById('indice-blocco'),
   indice: document.getElementById('indice'),
   dettagli: document.getElementById('dettagli'),
   whr: document.getElementById('whr'),
@@ -165,12 +165,9 @@ async function avvia() {
 
     el.paese.textContent = nome;
 
-    // Ogni nuova selezione riporta il pannello al livello 1: l'apertura deve
-    // restare un gesto, non diventare una preferenza permanente.
-    chiudiDettagli();
-
     if (v) {
-      el.indiceBtn.hidden = false;
+      el.indiceBlocco.hidden = false;
+      el.dettagli.hidden = false;
       el.senzaDati.hidden = true;
       el.indice.textContent = fmt(v.index);
       el.whr.textContent = fmt(v.whr, 2);
@@ -187,7 +184,8 @@ async function avvia() {
         `Posizione con l'indice corretto: <strong>${v.rank}</strong>. ` +
         `Con il solo punteggio di benessere: <strong>${v.rankWhr}</strong>. ${verso}`;
     } else {
-      el.indiceBtn.hidden = true;
+      el.indiceBlocco.hidden = true;
+      el.dettagli.hidden = true;
       el.senzaDati.hidden = false;
       el.senzaDati.textContent = 'Dati non disponibili per questo paese.';
     }
@@ -205,19 +203,6 @@ async function avvia() {
 
   el.chiudi.addEventListener('click', chiudi);
 
-  el.indiceBtn.addEventListener('click', () => {
-    const aperto = el.indiceBtn.getAttribute('aria-expanded') === 'true';
-    if (aperto) chiudiDettagli();
-    else {
-      el.indiceBtn.setAttribute('aria-expanded', 'true');
-      el.dettagli.hidden = false;
-    }
-  });
-
-  function chiudiDettagli() {
-    el.indiceBtn.setAttribute('aria-expanded', 'false');
-    el.dettagli.hidden = true;
-  }
 
   function apri() {
     el.pannello.inert = false;
