@@ -23,12 +23,27 @@ import { select } from 'd3-selection';
 
 export const LIVELLI = 9;
 
-/** Raggio del punto, in px schermo. Costante per tutti i livelli. */
+/**
+ * Raggio del punto, in px schermo. Costante per tutti i livelli, e costante a
+ * ogni scala di zoom: il punto non cresce mai.
+ *
+ * La misura e' un compromesso voluto. Piu' piccolo darebbe un tono piu' liscio
+ * da lontano, ma sotto il pixel i punti sfarfallano quando la mappa si muove e
+ * zoomando non si distinguerebbero comunque. A questa misura una nazione
+ * piccola nella vista mondiale si legge come grigio, e la stessa nazione
+ * ingrandita mostra che quel grigio e' un reticolo di pallini.
+ */
 const RAGGIO = 0.8;
 
-/** Copertura d'inchiostro agli estremi della scala. */
-const COPERTURA_MIN = 0.05;
-const COPERTURA_MAX = 0.4;
+/**
+ * Copertura d'inchiostro agli estremi della scala.
+ * Il minimo e' alto abbastanza da leggersi come grigio chiaro e non come punti
+ * sparsi — serve a simulare una sfumatura continua, e serve anche a non
+ * confondere il livello piu' chiaro con i paesi vuoti, che di punti non ne
+ * hanno nessuno.
+ */
+const COPERTURA_MIN = 0.12;
+const COPERTURA_MAX = 0.62;
 
 /**
  * Ogni livello e' una piastrella quadrata con due punti in diagonale: un
@@ -49,14 +64,13 @@ export function livelli() {
 }
 
 /**
- * Da valore 0-100 a livello di retino.
- * `invertito` serve perche' sulla mappa il retino piu' fitto sta dove l'indice
- * e' piu' basso: piu' inchiostro dove la situazione e' peggiore.
+ * Da frazione 0-1 a livello di retino. 0 = il piu' rado, 1 = il piu' fitto.
+ * Sta a chi chiama decidere quale grandezza normalizzare: il modulo non sa
+ * cosa rappresenta il retino, e non deve saperlo.
  */
-export function livelloPer(valore, { invertito = false } = {}) {
-  const v = Math.max(0, Math.min(100, Number(valore)));
-  const norm = invertito ? (100 - v) / 100 : v / 100;
-  return Math.min(LIVELLI - 1, Math.max(0, Math.round(norm * (LIVELLI - 1))));
+export function livelloPerFrazione(t) {
+  const f = Number.isFinite(t) ? Math.max(0, Math.min(1, t)) : 0;
+  return Math.min(LIVELLI - 1, Math.max(0, Math.round(f * (LIVELLI - 1))));
 }
 
 export const idRetino = (i) => `retino-${i}`;

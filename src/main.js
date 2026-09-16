@@ -6,7 +6,8 @@
  *
  * Niente colore. Il tema parla di morti, e una scala cromatica trasformerebbe
  * i paesi in caselle rosse e verdi, cioe' in un giudizio. L'intensita' e' resa
- * da un retino di punti: piu' fitto dove l'indice e' piu' basso.
+ * da un retino di punti: piu' fitto dove la mortalita' per suicidio e' piu'
+ * alta. La mappa mostra quindi le morti; l'indice corretto vive nel pannello.
  */
 
 import { geoEqualEarth, geoPath } from 'd3-geo';
@@ -14,7 +15,7 @@ import { select } from 'd3-selection';
 import { zoom } from 'd3-zoom';
 import { feature } from 'topojson-client';
 
-import { creaRetini, idRetino, livelloPer, livelli, LIVELLI } from './retino.js';
+import { creaRetini, idRetino, livelloPerFrazione, livelli, LIVELLI } from './retino.js';
 
 const SPESSORE_CONFINE = 0.35;
 const ZOOM_MIN = 1;
@@ -24,13 +25,8 @@ const ZOOM_MAX = 8;
 const inchiostro = () =>
   getComputedStyle(document.documentElement).getPropertyValue('--inchiostro').trim() || '#26241f';
 
-/**
- * Quale variabile guida la fittezza del retino.
- * true  = piu' fitto dove l'indice corretto e' piu' basso (piu' inchiostro dove
- *         la situazione e' peggiore).
- * false = piu' fitto dove l'indice e' piu' alto.
- */
-const RETINO_INVERTITO = true;
+/** Il massimo della scala si arrotonda in su, per una legenda leggibile. */
+const GRADINO_SCALA = 5;
 
 const fmt = (n, d = 1) => n.toLocaleString('it-IT', { minimumFractionDigits: d, maximumFractionDigits: d });
 
@@ -108,12 +104,22 @@ async function avvia() {
 
   const iso3Di = (f) => byId[String(f.id)] ?? byName[f.properties?.name] ?? null;
 
+  // La scala parte da zero: per una mortalita' far partire l'asse dal minimo
+  // osservato gonfierebbe le differenze fra paesi che stanno tutti in basso.
+  const tassi = Object.values(valori)
+    .map((v) => v.suicide)
+    .filter((x) => Number.isFinite(x));
+  const tassoMax = tassi.length
+    ? Math.ceil(Math.max(...tassi) / GRADINO_SCALA) * GRADINO_SCALA
+    : GRADINO_SCALA;
+  const frazioneDi = (tasso) => (tassoMax > 0 ? tasso / tassoMax : 0);
+
   const proiezione = geoEqualEarth();
   const percorso = geoPath(proiezione);
 
   const defs = el.svg.append('defs');
   creaRetini(defs, inchiostro());
-  disegnaLegenda();
+  disegnaLegenda(tassoMax);
 
   const gZoom = el.svg.append('g').attr('class', 'zoom-layer');
   const selPaesi = gZoom
@@ -126,7 +132,7 @@ async function avvia() {
     .style('fill', (f) => {
       const v = valori[iso3Di(f)];
       if (!v) return null; // senza dati -> resta il fondo carta, nessun punto
-      return `url(#${idRetino(livelloPer(v.index, { invertito: RETINO_INVERTITO }))})`;
+      return `url(#${idRetino(livelloPerFrazione(frazioneDi(v.suicide)))})`;
     })
     .attr('stroke-width', SPESSORE_CONFINE)
     .attr('tabindex', 0)
@@ -135,7 +141,9 @@ async function avvia() {
       const iso3 = iso3Di(f);
       const v = valori[iso3];
       const nome = v?.name ?? f.properties?.name ?? 'senza nome';
-      return v ? `${nome}, indice ${fmt(v.index)} su 100` : `${nome}, dati non disponibili`;
+      return v
+        ? `${nome}, mortalità per suicidio ${fmt(v.suicide)} per 100.000, indice ${fmt(v.index)} su 100`
+        : `${nome}, dati non disponibili`;
     })
     .on('click', (ev, f) => seleziona(f))
     .on('keydown', (ev, f) => {
@@ -169,10 +177,11 @@ async function avvia() {
       gZoom.attr('transform', ev.transform);
       // Senza questo i confini a zoom alto sembrano muri.
       selPaesi.attr('stroke-width', SPESSORE_CONFINE / k);
-      // I <pattern> vivono nello spazio utente del path, quindi lo zoom li
-      // ingrandirebbe insieme alla geografia: un retino che a scala 8 diventa
-      // pois. La controscala tiene il passo costante in pixel schermo, cosi'
-      // la texture resta texture e la fittezza resta confrontabile.
+      // I <pattern> vivono nello spazio utente del path, quindi senza correzione
+      // lo zoom li ingrandirebbe insieme alla geografia e a scala 8 il retino
+      // diventerebbe pois. La controscala piena tiene punto e passo identici in
+      // pixel schermo a ogni scala: zoomando non cresce niente, si vede solo
+      // che il grigio dentro agli stati e' fatto di pallini.
       defs.selectAll('pattern').attr('patternTransform', `scale(${1 / k})`);
     });
   el.svg.call(comportamentoZoom);
@@ -245,9 +254,15 @@ async function avvia() {
  * La legenda ha i propri <pattern>, non riusa quelli della mappa: vive in un
  * altro <svg>, e un url(#id) non attraversa i confini di un documento SVG.
  */
-function disegnaLegenda() {
+function disegnaLegenda(tassoMax) {
   const svg = select('#legenda-scala');
   if (svg.empty()) return;
+
+  const estremi = document.querySelectorAll('.legenda-estremi span');
+  if (estremi.length === 2) {
+    estremi[0].textContent = '0';
+    estremi[1].textContent = String(tassoMax);
+  }
 
   const LATO = 22;
   const PASSO = 2;
@@ -256,7 +271,7 @@ function disegnaLegenda() {
 
   creaRetini(svg.append('defs'), inchiostro());
 
-  // Da sinistra a destra: indice alto (rado) -> indice basso (fitto).
+  // Da sinistra a destra: poche morti (rado) -> molte morti (fitto).
   svg
     .selectAll('rect')
     .data(livelli())

@@ -134,6 +134,12 @@ body.pannello-aperto .mappa-wrap {
   margin-top: 5px;
 }
 
+.legenda-unita {
+  margin-top: 2px;
+  font-size: 10px;
+  opacity: 0.75;
+}
+
 .legenda-vuoto {
   display: flex;
   align-items: center;
