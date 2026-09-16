@@ -1,16 +1,20 @@
 /*
- * Segnaposto grafico. Layout neutro, nessuna decorazione: l'identita' visiva
- * arriva dopo, e riscriverla adesso sarebbe lavoro buttato. Qui conta solo che
- * la mappa si legga e che l'interazione funzioni.
+ * Impianto bicolore, riferimento e-ink: carta grigio chiaro e calda, inchiostro
+ * nero sporco. Nessuna tinta in nessun punto dell'interfaccia.
+ *
+ * Non e' solo una preferenza estetica. Una scala cromatica su una mappa di
+ * mortalita' trasforma i paesi in caselle rosse e verdi, cioe' in una pagella.
+ * Il bicolore toglie quel giudizio e lascia il confronto.
+ *
+ * Resta un segnaposto: proporzioni e tipografia si rifanno con gli schizzi.
  */
 
 :root {
-  --grigio-senza-dati: #c9cdd1;
-  --confine: #fff;
-  --fondo: #f4f5f6;
-  --testo: #1b1f23;
-  --testo-tenue: #5b6470;
-  --bordo: #dfe3e7;
+  --carta: #efebe4;
+  --carta-alta: #f6f3ed;
+  --inchiostro: #26241f;
+  --inchiostro-tenue: #6e6960;
+  --filo: #cfc9bd;
   --pannello-largh: 380px;
   --traslazione: 150px;
   --durata: 180ms;
@@ -21,9 +25,10 @@
 html, body {
   margin: 0;
   height: 100%;
-  background: var(--fondo);
-  color: var(--testo);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--carta);
+  color: var(--inchiostro);
+  font-family: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -33,14 +38,17 @@ body {
 }
 
 /* --- avviso dati finti ---------------------------------------------------- */
+/* Senza colore l'allarme lo dà il contrasto invertito: inchiostro pieno. */
 
 .avviso {
   padding: 8px 16px;
-  background: #4a3a00;
-  color: #ffe9a8;
-  font-size: 13px;
+  background: var(--inchiostro);
+  color: var(--carta);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   text-align: center;
 }
 
@@ -73,20 +81,72 @@ body.pannello-aperto .mappa-wrap {
 }
 #mappa:active { cursor: grabbing; }
 
+/* Il riempimento arriva da un <pattern> impostato via JS. Qui resta solo il
+   caso "senza dati": nessun punto, solo il filo del confine. */
 .paese {
-  fill: var(--grigio-senza-dati);
-  stroke: var(--confine);
+  fill: none;
+  stroke: var(--filo);
   stroke-linejoin: round;
   outline: none;
 }
-.paese.ha-dati { cursor: pointer; }
-.paese:focus-visible {
-  stroke: #111;
-  stroke-width: 1.5px;
-}
+.paese.ha-dati { cursor: pointer; stroke: var(--inchiostro); }
+.paese:focus-visible,
 .paese.selezionato {
-  stroke: #111;
-  stroke-width: 1.5px;
+  stroke: var(--inchiostro);
+  stroke-width: 1.6px;
+}
+
+/* --- legenda -------------------------------------------------------------- */
+/* Una scala di densità non si legge da sola come si legge un gradiente di
+   colore: va dichiarata, o il retino resta decorazione. */
+
+.legenda {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  padding: 12px 14px;
+  background: var(--carta-alta);
+  border: 1px solid var(--filo);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  color: var(--inchiostro-tenue);
+  pointer-events: none;
+}
+
+.legenda-titolo {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--inchiostro);
+}
+
+.legenda-scala {
+  display: flex;
+  gap: 2px;
+}
+.legenda-scala rect { stroke: var(--filo); }
+
+.legenda-estremi {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+
+.legenda-vuoto {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--filo);
+}
+.legenda-vuoto i {
+  width: 20px;
+  height: 14px;
+  border: 1px solid var(--filo);
+  background: var(--carta);
 }
 
 /* --- pannello ------------------------------------------------------------- */
@@ -99,17 +159,13 @@ body.pannello-aperto .mappa-wrap {
   max-width: 100%;
   height: 100%;
   padding: 28px 28px 24px;
-  background: #fff;
-  border-left: 1px solid var(--bordo);
+  background: var(--carta-alta);
+  border-left: 1px solid var(--filo);
   overflow-y: auto;
   transform: translateX(100%);
   transition: transform var(--durata) ease;
 }
 body.pannello-aperto .pannello { transform: translateX(0); }
-/* [hidden] vale display:none solo se nessuna regola piu' specifica dice altro. */
-.indice-blocco[hidden],
-.dettagli[hidden],
-.senza-dati[hidden] { display: none; }
 
 .chiudi {
   position: absolute;
@@ -118,45 +174,51 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   width: 32px;
   height: 32px;
   border: 0;
-  border-radius: 4px;
   background: transparent;
-  color: var(--testo-tenue);
+  color: var(--inchiostro-tenue);
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
 }
-.chiudi:hover { background: #f1f3f5; }
+.chiudi:hover { color: var(--inchiostro); }
 
 .pannello-paese {
   margin: 4px 0 2px;
-  font-size: 15px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--testo-tenue);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--inchiostro-tenue);
 }
 
 /* --- l'indice ------------------------------------------------------------- */
 
 .indice-blocco {
-  padding: 4px 0 12px;
-  border-bottom: 1px solid var(--bordo);
+  padding: 4px 0 14px;
+  border-bottom: 1px solid var(--filo);
 }
+.indice-blocco[hidden],
+.dettagli[hidden],
+.senza-dati[hidden] { display: none; }
 
 .indice-valore {
   display: block;
   font-size: clamp(64px, 12vw, 104px);
-  font-weight: 700;
+  font-weight: 400;
   line-height: 0.95;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .indice-etichetta {
   display: inline-block;
-  margin-top: 8px;
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  margin-top: 10px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--testo-tenue);
+  color: var(--inchiostro-tenue);
 }
 
 /* --- le componenti -------------------------------------------------------- */
@@ -165,34 +227,38 @@ body.pannello-aperto .pannello { transform: translateX(0); }
 
 .componenti { margin: 0; }
 .componenti > div {
-  padding: 12px 0;
-  border-bottom: 1px solid #eef0f2;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--filo);
 }
 .componenti dt {
-  font-size: 13px;
-  color: var(--testo-tenue);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--inchiostro-tenue);
 }
-.componenti .unita { color: #99a1ab; }
+.componenti .unita { opacity: 0.7; }
 .componenti dd {
-  margin: 2px 0 0;
-  font-size: 28px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  margin: 3px 0 0;
+  font-size: 30px;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .posizioni {
-  margin: 16px 0 0;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--testo-tenue);
+  margin: 18px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--inchiostro-tenue);
 }
-.posizioni strong { color: var(--testo); }
+.posizioni strong {
+  font-weight: 400;
+  color: var(--inchiostro);
+  border-bottom: 1px solid var(--filo);
+}
 
 .senza-dati {
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   font-size: 15px;
-  line-height: 1.5;
-  color: var(--testo-tenue);
+  line-height: 1.55;
+  color: var(--inchiostro-tenue);
 }
 
 /* --- footer --------------------------------------------------------------- */
@@ -203,12 +269,13 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   gap: 4px 20px;
   justify-content: space-between;
   padding: 10px 16px;
-  border-top: 1px solid var(--bordo);
-  background: #fff;
-  font-size: 12px;
-  color: var(--testo-tenue);
+  border-top: 1px solid var(--filo);
+  background: var(--carta-alta);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  color: var(--inchiostro-tenue);
 }
-.ascolto { font-weight: 600; }
+.ascolto { color: var(--inchiostro); }
 
 /* --- mobile: il pannello diventa un bottom sheet -------------------------- */
 
@@ -221,14 +288,15 @@ body.pannello-aperto .pannello { transform: translateX(0); }
     max-height: 72%;
     padding: 20px 20px 16px;
     border-left: 0;
-    border-top: 1px solid var(--bordo);
-    border-radius: 14px 14px 0 0;
+    border-top: 1px solid var(--filo);
     transform: translateY(100%);
   }
   body.pannello-aperto .pannello { transform: translateY(0); }
   /* Su mobile la mappa non trasla: il foglio le cresce sotto. */
   body.pannello-aperto .mappa-wrap { transform: none; }
   .indice-valore { font-size: 62px; }
+  .legenda { left: 12px; bottom: 12px; padding: 9px 11px; }
+  body.pannello-aperto .legenda { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

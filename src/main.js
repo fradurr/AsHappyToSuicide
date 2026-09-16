@@ -1,25 +1,36 @@
 /**
- * main.js — mappa coropletica, zoom/pan, pannello a due livelli.
+ * main.js — mappa, zoom/pan, pannello.
  *
  * Il frontend non fa matematica: legge un JSON gia' calcolato e per ogni
- * poligono cerca il suo ISO3. Trovato -> colore. Non trovato -> grigio.
+ * poligono cerca il suo ISO3. Trovato -> retino. Non trovato -> vuoto.
+ *
+ * Niente colore. Il tema parla di morti, e una scala cromatica trasformerebbe
+ * i paesi in caselle rosse e verdi, cioe' in un giudizio. L'intensita' e' resa
+ * da un retino di punti: piu' fitto dove l'indice e' piu' basso.
  */
 
 import { geoEqualEarth, geoPath } from 'd3-geo';
 import { select } from 'd3-selection';
 import { zoom } from 'd3-zoom';
-import { scaleLinear } from 'd3-scale';
 import { feature } from 'topojson-client';
 
-const SPESSORE_CONFINE = 0.3;
+import { creaRetini, idRetino, livelloPer, livelli, LIVELLI } from './retino.js';
+
+const SPESSORE_CONFINE = 0.35;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 8;
 
-// Scala divergente segnaposto: rosso profondo -> neutro -> verde-teal.
-const colore = scaleLinear()
-  .domain([0, 50, 100])
-  .range(['#8e1b22', '#e9e4da', '#12655e'])
-  .clamp(true);
+/** Preso dal CSS, cosi' la tinta dell'inchiostro sta scritta in un posto solo. */
+const inchiostro = () =>
+  getComputedStyle(document.documentElement).getPropertyValue('--inchiostro').trim() || '#26241f';
+
+/**
+ * Quale variabile guida la fittezza del retino.
+ * true  = piu' fitto dove l'indice corretto e' piu' basso (piu' inchiostro dove
+ *         la situazione e' peggiore).
+ * false = piu' fitto dove l'indice e' piu' alto.
+ */
+const RETINO_INVERTITO = true;
 
 const fmt = (n, d = 1) => n.toLocaleString('it-IT', { minimumFractionDigits: d, maximumFractionDigits: d });
 
@@ -100,17 +111,22 @@ async function avvia() {
   const proiezione = geoEqualEarth();
   const percorso = geoPath(proiezione);
 
+  const defs = el.svg.append('defs');
+  creaRetini(defs, inchiostro());
+  disegnaLegenda();
+
   const gZoom = el.svg.append('g').attr('class', 'zoom-layer');
   const selPaesi = gZoom
     .selectAll('path')
     .data(paesi)
     .join('path')
     .attr('class', (f) => (valori[iso3Di(f)] ? 'paese ha-dati' : 'paese'))
-    // Stile inline e non attributo: un attributo di presentazione perde
-    // contro qualsiasi regola CSS, e il grigio di .paese vincerebbe sempre.
+    // Stile inline e non attributo: un attributo di presentazione perde contro
+    // qualsiasi regola CSS, e il fondo di .paese vincerebbe sempre.
     .style('fill', (f) => {
       const v = valori[iso3Di(f)];
-      return v ? colore(v.index) : null; // null -> resta il grigio del CSS
+      if (!v) return null; // senza dati -> resta il fondo carta, nessun punto
+      return `url(#${idRetino(livelloPer(v.index, { invertito: RETINO_INVERTITO }))})`;
     })
     .attr('stroke-width', SPESSORE_CONFINE)
     .attr('tabindex', 0)
@@ -119,7 +135,7 @@ async function avvia() {
       const iso3 = iso3Di(f);
       const v = valori[iso3];
       const nome = v?.name ?? f.properties?.name ?? 'senza nome';
-      return v ? `${nome}, indice ${fmt(v.index)}` : `${nome}, dati non disponibili`;
+      return v ? `${nome}, indice ${fmt(v.index)} su 100` : `${nome}, dati non disponibili`;
     })
     .on('click', (ev, f) => seleziona(f))
     .on('keydown', (ev, f) => {
@@ -149,9 +165,15 @@ async function avvia() {
   const comportamentoZoom = zoom()
     .scaleExtent([ZOOM_MIN, ZOOM_MAX])
     .on('zoom', (ev) => {
+      const { k } = ev.transform;
       gZoom.attr('transform', ev.transform);
       // Senza questo i confini a zoom alto sembrano muri.
-      selPaesi.attr('stroke-width', SPESSORE_CONFINE / ev.transform.k);
+      selPaesi.attr('stroke-width', SPESSORE_CONFINE / k);
+      // I <pattern> vivono nello spazio utente del path, quindi lo zoom li
+      // ingrandirebbe insieme alla geografia: un retino che a scala 8 diventa
+      // pois. La controscala tiene il passo costante in pixel schermo, cosi'
+      // la texture resta texture e la fittezza resta confrontabile.
+      defs.selectAll('pattern').attr('patternTransform', `scale(${1 / k})`);
     });
   el.svg.call(comportamentoZoom);
 
@@ -217,6 +239,33 @@ async function avvia() {
     selPaesi.classed('selezionato', false);
   }
   el.pannello.inert = true;
+}
+
+/**
+ * La legenda ha i propri <pattern>, non riusa quelli della mappa: vive in un
+ * altro <svg>, e un url(#id) non attraversa i confini di un documento SVG.
+ */
+function disegnaLegenda() {
+  const svg = select('#legenda-scala');
+  if (svg.empty()) return;
+
+  const LATO = 22;
+  const PASSO = 2;
+  const larghezza = LIVELLI * LATO + (LIVELLI - 1) * PASSO;
+  svg.attr('width', larghezza).attr('height', LATO).attr('viewBox', `0 0 ${larghezza} ${LATO}`);
+
+  creaRetini(svg.append('defs'), inchiostro());
+
+  // Da sinistra a destra: indice alto (rado) -> indice basso (fitto).
+  svg
+    .selectAll('rect')
+    .data(livelli())
+    .join('rect')
+    .attr('x', (d) => d.i * (LATO + PASSO))
+    .attr('y', 0)
+    .attr('width', LATO)
+    .attr('height', LATO)
+    .attr('fill', (d) => `url(#${idRetino(d.i)})`);
 }
 
 avvia();
