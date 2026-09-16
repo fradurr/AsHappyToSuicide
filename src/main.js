@@ -7,8 +7,14 @@
  * Niente colore. Il tema parla di morti, e una scala cromatica trasformerebbe
  * i paesi in caselle rosse e verdi, cioe' in un giudizio. L'intensita' e' resa
  * da un retino di punti: piu' fitto dove la mortalita' per suicidio e' piu'
- * alta. La mappa mostra quindi le morti; l'indice corretto vive nel pannello.
+ * alta. La mappa mostra quindi le morti; il valore della felicita' vive nel
+ * pannello.
  */
+
+// Literata: serif disegnato per la lettura su schermo. Bookerly, il font dei
+// Kindle, e' proprietario di Amazon e non ha licenza web. Autoospitato via
+// pacchetto npm invece che da CDN: nessuna richiesta a terzi.
+import '@fontsource-variable/literata/wght.css';
 
 import { geoEqualEarth, geoPath } from 'd3-geo';
 import { select } from 'd3-selection';
@@ -72,7 +78,46 @@ const el = {
   senzaDati: document.getElementById('senza-dati'),
   chiudi: document.getElementById('chiudi'),
   avviso: document.getElementById('avviso'),
+  intro: document.getElementById('intro'),
+  vaiAllaMappa: document.getElementById('vai-alla-mappa'),
+  leggi: document.getElementById('leggi'),
+  lettura: document.getElementById('lettura'),
+  letturaChiudi: document.getElementById('lettura-chiudi'),
 };
+
+/**
+ * Prima schermata e testo del metodo.
+ *
+ * Stanno fuori da `avvia()` perche' devono funzionare anche se il caricamento
+ * dei dati fallisce: chi arriva sul sito ha diritto di sapere di cosa si parla
+ * comunque, e i numeri di ascolto in fondo al metodo non devono dipendere dal
+ * fatto che una fetch sia andata a buon fine.
+ */
+function collegaIntroELettura() {
+  el.vaiAllaMappa?.addEventListener('click', () => {
+    el.intro.classList.add('via');
+    // Tolto dal flusso solo a transizione finita, altrimenti sparisce di scatto.
+    const fine = () => {
+      el.intro.hidden = true;
+      el.intro.removeEventListener('transitionend', fine);
+    };
+    el.intro.addEventListener('transitionend', fine);
+    // Se le transizioni sono disattivate transitionend non arriva mai.
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) fine();
+    el.leggi?.focus();
+  });
+
+  // <dialog> porta in dote la trappola del focus, Esc per chiudere e il
+  // ripristino del focus all'elemento che l'ha aperto: non serve rifarlo a mano.
+  el.leggi?.addEventListener('click', () => el.lettura?.showModal());
+  el.letturaChiudi?.addEventListener('click', () => el.lettura?.close());
+  el.lettura?.addEventListener('click', (ev) => {
+    // Clic sullo sfondo: il target e' il dialog stesso solo fuori dal contenuto.
+    if (ev.target === el.lettura) el.lettura.close();
+  });
+}
+
+collegaIntroELettura();
 
 async function avvia() {
   const [topo, geoIso, dati] = await Promise.all([
@@ -212,7 +257,7 @@ async function avvia() {
             ? `Sale di <strong>${delta}</strong> ${delta === 1 ? 'posizione' : 'posizioni'} quando i suicidi entrano nel conto.`
             : `Scende di <strong>${Math.abs(delta)}</strong> ${Math.abs(delta) === 1 ? 'posizione' : 'posizioni'} quando i suicidi entrano nel conto.`;
       el.posizioni.innerHTML =
-        `Posizione con l'indice corretto: <strong>${v.rank}</strong>. ` +
+        `Posizione per valore della felicità: <strong>${v.rank}</strong>. ` +
         `Con il solo punteggio di benessere: <strong>${v.rankWhr}</strong>. ${verso}`;
     } else {
       el.indiceBlocco.hidden = true;
@@ -229,7 +274,8 @@ async function avvia() {
   });
 
   window.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape') chiudi();
+    // Mentre il metodo e' aperto, Esc spetta al dialog: chiuderebbe entrambi.
+    if (ev.key === 'Escape' && !el.lettura?.open) chiudi();
   });
 
   el.chiudi.addEventListener('click', chiudi);

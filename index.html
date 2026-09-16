@@ -7,6 +7,25 @@
     <link rel="stylesheet" href="/src/index.css" />
   </head>
   <body>
+    <!-- Prima schermata: dice di cosa si parla, poi si toglie di mezzo. -->
+    <section class="intro" id="intro" aria-labelledby="intro-titolo">
+      <div class="intro-dentro">
+        <h1 class="intro-titolo" id="intro-titolo">Il valore della felicità</h1>
+        <p class="intro-testo">
+          Questa mappa mostra il valore della felicità di ogni nazione.
+        </p>
+        <p class="intro-testo">
+          È la prima in cui il tasso di suicidi entra nel conto del benessere,
+          invece di restarne fuori.
+        </p>
+        <button type="button" class="intro-vai" id="vai-alla-mappa">Vai alla mappa</button>
+        <p class="intro-nota">
+          I dati sui suicidi riguardano morti reali. Se stai attraversando un momento
+          difficile: Telefono Amico <b>02 2327 2327</b>, numero gratuito <b>800 86 00 22</b>.
+        </p>
+      </div>
+    </section>
+
     <div id="avviso" class="avviso" hidden></div>
 
     <div class="scena">
@@ -14,6 +33,7 @@
         <svg id="mappa" role="img" aria-label="Mappa mondiale dell'indice di felicità corretto"></svg>
       </div>
 
+      <div class="angolo">
       <figure class="legenda" id="legenda">
         <figcaption class="legenda-titolo">Mortalità per suicidio</figcaption>
         <svg class="legenda-scala" id="legenda-scala" aria-hidden="true"></svg>
@@ -22,6 +42,97 @@
         <div class="legenda-vuoto"><i></i><span>dati non disponibili</span></div>
       </figure>
 
+      <button type="button" class="leggi" id="leggi">Leggi il metodo</button>
+      </div>
+
+      <dialog class="lettura" id="lettura" aria-labelledby="lettura-titolo">
+        <button type="button" class="lettura-chiudi" id="lettura-chiudi" aria-label="Chiudi">×</button>
+        <article class="lettura-dentro">
+          <h2 id="lettura-titolo">Di cosa parla questa mappa</h2>
+
+          <p>
+            Il World Happiness Report classifica i paesi in base a una sola domanda,
+            posta a un campione di abitanti: «da 0 a 10, dove collochi la tua vita
+            oggi?». È una misura utile, ma non tiene conto di chi quella vita ha
+            scelto di interromperla.
+          </p>
+          <p>
+            Ne risulta una tensione nota come <i>happiness-suicide paradox</i>: alcuni
+            paesi in cima alla classifica del benessere hanno tassi di suicidio fra i
+            più alti al mondo. Questa mappa rende visibile quella tensione invece di
+            lasciarla fuori dal quadro.
+          </p>
+          <p>
+            Non stiamo dicendo che la classifica del World Happiness Report sia
+            sbagliata. Stiamo offrendo una seconda lettura, con il calcolo in chiaro
+            e verificabile.
+          </p>
+
+          <h3>Come si calcola</h3>
+          <p>
+            Le due grandezze non sono confrontabili così come sono: una va da 0 a 10,
+            l'altra conta morti per 100.000 abitanti. Vengono quindi convertite
+            entrambe in percentile, all'interno del gruppo di paesi che hanno
+            entrambi i dati — 100 è il migliore del gruppo, 0 il peggiore.
+          </p>
+          <pre class="formula">p_benessere = percentile(punteggio 0–10)
+p_suicidi   = percentile(−tasso per 100.000)
+
+valore = (1 − w) × p_benessere + w × p_suicidi</pre>
+          <p>
+            Con <b>w = 0,25</b>: la mortalità per suicidio pesa per un quarto. Con
+            w = 0 si riottiene esattamente la classifica del World Happiness Report.
+          </p>
+          <p>
+            Il percentile e non il minimo-massimo, perché quest'ultimo viene schiacciato
+            dai casi estremi: un solo paese con un tasso molto sopra la media
+            comprimerebbe tutti gli altri in una fascia strettissima. E non una divisione
+            fra le due grandezze, perché un paese con pochissimi suicidi schizzerebbe in
+            cima per pura algebra, indipendentemente da come ci si sente a viverci.
+          </p>
+
+          <h3>Tre limiti, dichiarati</h3>
+          <p>
+            <b>I dati sui suicidi non sono ugualmente affidabili ovunque.</b> Stigma
+            religioso o legale, pratiche dei medici legali e qualità dei registri di
+            morte variano molto da paese a paese. Le stime dell'Organizzazione
+            Mondiale della Sanità correggono per la sotto-notifica, ma restano stime.
+          </p>
+          <p>
+            <b>Il peso del 25% è una scelta, non un risultato.</b> Nessuna teoria
+            stabilisce quanto debba pesare la mortalità per suicidio dentro una misura
+            di benessere. È un valore arbitrario, e va difeso come tale.
+          </p>
+          <p>
+            <b>Le due fonti coprono anni diversi.</b> Il punteggio di benessere è una
+            media dei tre anni più recenti disponibili; le stime di mortalità sono
+            riferite a un anno precedente.
+          </p>
+
+          <h3>Le fonti</h3>
+          <p>
+            Benessere: World Happiness Report, dati della Figura 2.1.<br />
+            Mortalità: Organizzazione Mondiale della Sanità, Global Health Estimates,
+            tassi standardizzati per età.
+          </p>
+          <p>
+            Sono usate le stime GHE e non i dati grezzi del Mortality Database, perché
+            le prime sono già corrette per sotto-notifica e cause di morte mal
+            definite, e quindi confrontabili fra paesi.
+          </p>
+
+          <h3>Una nota sul tono</h3>
+          <p>
+            I numeri di questa mappa sono morti. Non sono un punteggio, non sono una
+            prestazione, e nessun paese qui «vince» o «perde». Le differenze fra due
+            indicatori sono ciò che la mappa mostra — nient'altro.
+          </p>
+          <p class="lettura-ascolto">
+            Telefono Amico <b>02 2327 2327</b> · numero gratuito <b>800 86 00 22</b>
+          </p>
+        </article>
+      </dialog>
+
       <aside id="pannello" class="pannello" aria-live="polite">
         <button type="button" id="chiudi" class="chiudi" aria-label="Chiudi il pannello">×</button>
 
@@ -29,7 +140,7 @@
 
         <div class="indice-blocco" id="indice-blocco">
           <span class="indice-valore" id="indice"></span>
-          <span class="indice-etichetta">indice corretto</span>
+          <span class="indice-etichetta">valore della felicità</span>
         </div>
 
         <div id="dettagli" class="dettagli">
@@ -51,7 +162,7 @@
     </div>
 
     <footer class="footer">
-      <span id="footer-testo">Segnaposto — identità visiva e pagina «Metodo» da fare.</span>
+      <span id="footer-testo">Segnaposto: l'identità visiva è ancora da definire.</span>
       <span class="ascolto">Telefono Amico 02 2327 2327 · numero gratuito 800 86 00 22</span>
     </footer>
 
