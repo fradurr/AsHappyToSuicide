@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "placeholder": "node scripts/make-placeholder.js",
     "templates": "node scripts/make-templates.js",
-    "misura-retino": "node scripts/misura-retino.mjs"
+    "misura-toni": "node scripts/misura-toni.mjs",
+    "prebuild": "node scripts/controlla-dati.js"
   },
   "repository": {
     "type": "git",

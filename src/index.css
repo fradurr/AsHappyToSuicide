@@ -140,7 +140,7 @@ body.pannello-aperto .mappa-wrap {
   display: flex;
   gap: 2px;
 }
-.legenda-scala rect { stroke: var(--filo); }
+.legenda-scala .campioni rect { stroke: var(--filo); }
 
 .legenda-estremi {
   display: flex;

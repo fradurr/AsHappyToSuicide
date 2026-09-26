@@ -2,13 +2,12 @@
  * main.js — mappa, zoom/pan, pannello.
  *
  * Il frontend non fa matematica: legge un JSON gia' calcolato e per ogni
- * poligono cerca il suo ISO3. Trovato -> retino. Non trovato -> vuoto.
+ * poligono cerca il suo ISO3. Trovato -> tono. Non trovato -> vuoto.
  *
  * Niente colore. Il tema parla di morti, e una scala cromatica trasformerebbe
  * i paesi in caselle rosse e verdi, cioe' in un giudizio. L'intensita' e' resa
- * da un retino di punti: piu' fitto dove la mortalita' per suicidio e' piu'
- * alta. La mappa mostra quindi le morti; il valore della felicita' vive nel
- * pannello.
+ * da un grigio pieno: piu' scuro dove la mortalita' per suicidio e' piu' alta.
+ * La mappa mostra quindi le morti; il valore della felicita' vive nel pannello.
  */
 
 // Literata: serif disegnato per la lettura su schermo. Bookerly, il font dei
@@ -21,20 +20,26 @@ import { select } from 'd3-selection';
 import { zoom } from 'd3-zoom';
 import { feature } from 'topojson-client';
 
-import { creaRetini, idRetino, livelloPerFrazione, livelli, LIVELLI } from './retino.js';
+import { creaToni, idTono, livelloPerFrazione, toni, LIVELLI } from './toni.js';
 
 const SPESSORE_CONFINE = 0.35;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 8;
 
-/** Preso dal CSS, cosi' la tinta dell'inchiostro sta scritta in un posto solo. */
-const inchiostro = () =>
-  getComputedStyle(document.documentElement).getPropertyValue('--inchiostro').trim() || '#26241f';
-
 /** Il massimo della scala si arrotonda in su, per una legenda leggibile. */
 const GRADINO_SCALA = 5;
 
 const fmt = (n, d = 1) => n.toLocaleString('it-IT', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+/**
+ * Tutti i file di dati si chiedono relativi a questa base.
+ *
+ * Su GitHub Pages il sito non sta alla radice del dominio ma dentro una
+ * sottocartella col nome del repository. Un percorso che comincia per "/"
+ * punterebbe alla radice e darebbe 404 ovunque tranne che in locale: Vite
+ * riempie BASE_URL con la base giusta in fase di build.
+ */
+const BASE = import.meta.env.BASE_URL;
 
 /**
  * Vite risponde con l'index.html a qualsiasi percorso sconosciuto, quindi un
@@ -55,9 +60,9 @@ async function caricaJson(url) {
 }
 
 async function caricaDati() {
-  const veri = await caricaJson('/data/countries.json');
+  const veri = await caricaJson(`${BASE}data/countries.json`);
   if (veri) return veri;
-  const finti = await caricaJson('/data/countries.placeholder.json');
+  const finti = await caricaJson(`${BASE}data/countries.placeholder.json`);
   if (finti) return finti;
   return null;
 }
@@ -121,8 +126,8 @@ collegaIntroELettura();
 
 async function avvia() {
   const [topo, geoIso, dati] = await Promise.all([
-    caricaJson('/geo/countries-110m.json'),
-    caricaJson('/data/geo-iso.json'),
+    caricaJson(`${BASE}geo/countries-110m.json`),
+    caricaJson(`${BASE}data/geo-iso.json`),
     caricaDati(),
   ]);
 
@@ -163,7 +168,7 @@ async function avvia() {
   const percorso = geoPath(proiezione);
 
   const defs = el.svg.append('defs');
-  creaRetini(defs, inchiostro());
+  creaToni(defs);
   disegnaLegenda(tassoMax);
 
   const gZoom = el.svg.append('g').attr('class', 'zoom-layer');
@@ -176,8 +181,8 @@ async function avvia() {
     // qualsiasi regola CSS, e il fondo di .paese vincerebbe sempre.
     .style('fill', (f) => {
       const v = valori[iso3Di(f)];
-      if (!v) return null; // senza dati -> resta il fondo carta, nessun punto
-      return `url(#${idRetino(livelloPerFrazione(frazioneDi(v.suicide)))})`;
+      if (!v) return null; // senza dati -> resta il fondo carta, nessun tono
+      return `url(#${idTono(livelloPerFrazione(frazioneDi(v.suicide)))})`;
     })
     .attr('stroke-width', SPESSORE_CONFINE)
     .attr('tabindex', 0)
@@ -223,10 +228,9 @@ async function avvia() {
       // Senza questo i confini a zoom alto sembrano muri.
       selPaesi.attr('stroke-width', SPESSORE_CONFINE / k);
       // I <pattern> vivono nello spazio utente del path, quindi senza correzione
-      // lo zoom li ingrandirebbe insieme alla geografia e a scala 8 il retino
-      // diventerebbe pois. La controscala piena tiene punto e passo identici in
-      // pixel schermo a ogni scala: zoomando non cresce niente, si vede solo
-      // che il grigio dentro agli stati e' fatto di pallini.
+      // lo zoom ingrandirebbe la griglia insieme alla geografia, e a scala 8
+      // una grana impercettibile diventerebbe pois. La controscala piena la
+      // tiene identica in pixel schermo a ogni scala.
       defs.selectAll('pattern').attr('patternTransform', `scale(${1 / k})`);
     });
   el.svg.call(comportamentoZoom);
@@ -315,18 +319,25 @@ function disegnaLegenda(tassoMax) {
   const larghezza = LIVELLI * LATO + (LIVELLI - 1) * PASSO;
   svg.attr('width', larghezza).attr('height', LATO).attr('viewBox', `0 0 ${larghezza} ${LATO}`);
 
-  creaRetini(svg.append('defs'), inchiostro());
+  creaToni(svg.append('defs'), 'legenda');
 
-  // Da sinistra a destra: poche morti (rado) -> molte morti (fitto).
+  // Da sinistra a destra: poche morti (chiaro) -> molte morti (scuro).
+  //
+  // I campioni stanno dentro un <g> e si selezionano da li'. Un
+  // svg.selectAll('rect') pescherebbe anche i <rect> di fondo dentro ai
+  // <pattern>, che sono discendenti dello stesso <svg>: d3 ci legherebbe sopra
+  // i dati e la legenda resterebbe vuota.
   svg
+    .append('g')
+    .attr('class', 'campioni')
     .selectAll('rect')
-    .data(livelli())
+    .data(toni())
     .join('rect')
     .attr('x', (d) => d.i * (LATO + PASSO))
     .attr('y', 0)
     .attr('width', LATO)
     .attr('height', LATO)
-    .attr('fill', (d) => `url(#${idRetino(d.i)})`);
+    .attr('fill', (d) => `url(#${idTono(d.i, 'legenda')})`);
 }
 
 avvia();

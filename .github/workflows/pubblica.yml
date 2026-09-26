@@ -1,0 +1,63 @@
+# Pubblica il sito su GitHub Pages a ogni push sul branch di lavoro.
+#
+# Perché serva, una volta sola, a mano:
+#   repository su GitHub -> Settings -> Pages -> Build and deployment
+#   -> Source: "GitHub Actions"
+#
+# L'indirizzo risultante è https://<utente>.github.io/<repository>/
+name: Pubblica il sito
+
+on:
+  push:
+    branches: [main, claude/happiness-suicide-index-map-bkbh8x]
+  # Permette di pubblicare a mano dalla scheda Actions, senza fare un push.
+  workflow_dispatch:
+
+# I permessi minimi perché l'azione possa scrivere su Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Una pubblicazione alla volta: se ne parte una nuova mentre la precedente è
+# ancora in corso, quella vecchia viene lasciata finire e non annullata a metà.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  costruisci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        # La base deve corrispondere al nome del repository, o il sito cerca
+        # i propri file nella radice del dominio e resta bianco.
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  pubblica:
+    needs: costruisci
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

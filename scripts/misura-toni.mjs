@@ -1,23 +1,22 @@
 #!/usr/bin/env node
 /**
- * misura-retino.mjs — verifica che i livelli del retino si distinguano davvero.
+ * misura-toni.mjs — verifica che le classi si distinguano davvero a schermo.
  *
- * I test in tests/retino.test.js controllano la geometria: copertura monotona,
- * gradini uniformi, vuoto fra i punti sopra il pixel. Ma la geometria non dice
- * come il browser rasterizza quella geometria, e li' sta il problema vero: un
- * reticolo fine cade in fase diversa rispetto alla griglia dei pixel a seconda
- * del passo, e due livelli adiacenti possono arrivare a schermo con la stessa
- * quantita' d'inchiostro. E' successo davvero: con passo frazionario, su 2x,
- * gli ultimi due livelli si staccavano di 2 punti di luminanza su 255.
+ * I test in tests/toni.test.js confrontano i colori dichiarati. Questo script
+ * misura invece quello che il browser disegna davvero, a densita' 1x e 2x.
  *
- * Questo script rasterizza ogni livello su un campione grande e ne misura la
- * luminanza media, a densita' 1x e 2x. E' la prova che i gradini esistono anche
- * dopo il disegno, non solo nei numeri.
+ * Con i toni pieni il controllo e' quasi una formalita': un colore pieno non ha
+ * nulla da rasterizzare, quindi arriva a schermo com'e'. Serviva molto di piu'
+ * nella versione precedente, che affidava il dato alla fittezza di un retino:
+ * li' passi frazionari cadevano in fase diversa rispetto alla griglia dei pixel
+ * e su 2x gli ultimi due livelli si staccavano di 2 punti di luminanza su 255.
+ * Vale la pena tenerlo: se un giorno la grana venisse alzata o il passo
+ * cambiato, e' qui che si vedrebbe tornare il problema.
  *
  * Serve Playwright, che non e' fra le dipendenze perche' non serve al sito:
  *     npm i -D playwright
  *     npm run build && npx vite preview --port 4177 &
- *     node scripts/misura-retino.mjs
+ *     node scripts/misura-toni.mjs
  */
 
 import { chromium } from 'playwright';

@@ -28,12 +28,59 @@ Quando ci sono, il sito ci mette sopra un avviso giallo a tutta larghezza.
 **Prima di pubblicare quel file va cancellato.** È l'unica cosa nel repo che
 potrebbe far sembrare reali dei numeri che non lo sono.
 
+## Vedere il sito sul proprio computer
+
+Serve [Node.js](https://nodejs.org) 22 o superiore. Una volta sola:
+
+```
+git clone https://github.com/fradurr/AsHappyToSuicide.git
+cd AsHappyToSuicide
+git checkout claude/happiness-suicide-index-map-bkbh8x
+npm install
+```
+
+Poi, ogni volta:
+
+```
+npm run dev
+```
+
+e si apre <http://localhost:5173>. Il server resta in ascolto: salvando un file
+la pagina si aggiorna da sola. Si ferma con Ctrl+C.
+
+Per vedere il sito esattamente come sarà una volta pubblicato — file compressi,
+nessun aiuto dello sviluppo — si usa invece:
+
+```
+npm run build && npm run preview
+```
+
+## Pubblicarlo
+
+C'è un workflow che pubblica su GitHub Pages a ogni push. Perché funzioni serve
+un passaggio a mano, una volta sola:
+
+> repository su GitHub → **Settings** → **Pages** → *Build and deployment* →
+> **Source: GitHub Actions**
+
+Da quel momento ogni push fa girare i test, costruisce il sito e lo pubblica su
+`https://fradurr.github.io/AsHappyToSuicide/`. L'avanzamento si vede nella
+scheda **Actions**; da lì si può anche lanciare la pubblicazione a mano, senza
+fare un push, con *Run workflow*.
+
+Il `base` del sito viene impostato dal workflow sul nome del repository. Senza,
+il sito cercherebbe i propri file nella radice del dominio e resterebbe bianco.
+
+**Prima di pubblicare davvero**, vedi la nota sui dati di esempio qui sotto: un
+sito pubblico che mostra numeri inventati sui suicidi è un danno, anche con la
+fascia di avviso.
+
 ## Comandi
 
 ```
 npm install
 npm run build:data          # unisce le fonti e scrive public/data/countries.json
-npm test                    # 24 test sul join, sui percentili e sui fallimenti
+npm test                    # 32 test sul join, sui percentili e sui fallimenti
 npm run dev                 # server di sviluppo Vite
 npm run build               # build statica del sito
 npm run placeholder         # dati FINTI, solo per vedere la mappa girare
