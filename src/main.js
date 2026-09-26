@@ -6,9 +6,10 @@
  * gets a tone; not found, and it stays empty.
  *
  * No colour. The subject is deaths, and a colour ramp would turn countries into
- * red and green cells, which reads as a report card. The scale is flat grey:
- * darker where suicide mortality is higher. So the map shows the deaths, and
- * the happiness value lives in the panel.
+ * red and green cells, which reads as a report card. The scale is flat grey,
+ * darker where suicide mortality is higher, under a dot grain that is the same
+ * everywhere. So the map shows the deaths, and the happiness value lives in the
+ * panel.
  */
 
 // Literata: a serif drawn for reading on screen. Bookerly, the Kindle typeface,
@@ -21,7 +22,7 @@ import { select } from 'd3-selection';
 import { zoom } from 'd3-zoom';
 import { feature } from 'topojson-client';
 
-import { fillFor, tones, LEVELS } from './scale.js';
+import { createPatterns, patternId, levelFor, tones, LEVELS } from './scale.js';
 
 const BORDER_WIDTH = 0.35;
 const ZOOM_MIN = 1;
@@ -169,6 +170,8 @@ async function start() {
   const projection = geoEqualEarth();
   const path = geoPath(projection);
 
+  const defs = el.svg.append('defs');
+  createPatterns(defs);
   drawLegend(maxRate);
 
   const gZoom = el.svg.append('g').attr('class', 'zoom-layer');
@@ -181,7 +184,8 @@ async function start() {
     // any CSS rule, and the background of .country would always win.
     .style('fill', (f) => {
       const v = values[iso3Of(f)];
-      return v ? fillFor(fractionOf(v.suicide)) : null; // no data -> paper
+      if (!v) return null; // no data -> paper, no grain
+      return `url(#${patternId(levelFor(fractionOf(v.suicide)))})`;
     })
     .attr('stroke-width', BORDER_WIDTH)
     .attr('tabindex', 0)
@@ -222,9 +226,14 @@ async function start() {
     zoom()
       .scaleExtent([ZOOM_MIN, ZOOM_MAX])
       .on('zoom', (ev) => {
+        const { k } = ev.transform;
         gZoom.attr('transform', ev.transform);
         // Without this the borders look like walls at high zoom.
-        paths.attr('stroke-width', BORDER_WIDTH / ev.transform.k);
+        paths.attr('stroke-width', BORDER_WIDTH / k);
+        // Patterns live in the path's user space, so without a correction the
+        // zoom would blow the grain up along with the geography. Paper grain
+        // does not zoom: counter-scaling keeps it the same size on screen.
+        defs.selectAll('pattern').attr('patternTransform', `scale(${1 / k})`);
       }),
   );
 
@@ -290,7 +299,7 @@ async function start() {
   el.panel.inert = true;
 }
 
-/** The legend swatches: plain rectangles, the same flat fills as the map. */
+/** The legend swatches: the same patterns as the map, under their own prefix. */
 function drawLegend(maxRate) {
   const svg = select('#legend-scale');
   if (svg.empty()) return;
@@ -306,8 +315,17 @@ function drawLegend(maxRate) {
   const width = LEVELS * SIDE + (LEVELS - 1) * GAP;
   svg.attr('width', width).attr('height', SIDE).attr('viewBox', `0 0 ${width} ${SIDE}`);
 
+  createPatterns(svg.append('defs'), 'legend');
+
   // Left to right: few deaths (light) -> many deaths (dark).
+  //
+  // The swatches live in their own <g> and are selected from there. A plain
+  // svg.selectAll('rect') would also pick up the background rects inside the
+  // <pattern> elements, which are descendants of the same <svg>: d3 would bind
+  // the data onto those and the legend would come out empty.
   svg
+    .append('g')
+    .attr('class', 'swatches')
     .selectAll('rect')
     .data(tones())
     .join('rect')
@@ -315,7 +333,7 @@ function drawLegend(maxRate) {
     .attr('y', 0)
     .attr('width', SIDE)
     .attr('height', SIDE)
-    .attr('fill', (d) => d.fill);
+    .attr('fill', (d) => `url(#${patternId(d.i, 'legend')})`);
 }
 
 start();

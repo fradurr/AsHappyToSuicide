@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { tones, levelFor, fillFor, bounds, LEVELS } from '../src/scale.js';
+import { tones, levelFor, fillFor, patternId, bounds, LEVELS } from '../src/scale.js';
 
 /** "rgb(222 216 205)" -> [222, 216, 205] */
 const channels = (s) => s.match(/\d+/g).map(Number);
@@ -61,6 +61,29 @@ test('levelFor spans the scale and survives values out of range', () => {
   for (const bad of [NaN, undefined, null, 'x']) {
     assert.equal(levelFor(bad), 0, `${bad} must fall on the lightest tone`);
   }
+});
+
+test('the grain is grain, not information: same pitch and same dot everywhere', () => {
+  const ls = tones();
+  assert.equal(new Set(ls.map((t) => t.pitch)).size, 1);
+  assert.equal(new Set(ls.map((t) => t.radius)).size, 1);
+  assert.ok(Number.isInteger(bounds.PITCH), 'an integer pitch falls in phase with the pixels');
+});
+
+test('the dot stays visible across the scale, both ends included', () => {
+  for (const t of tones()) {
+    const d = luminance(t.fill) - luminance(t.dot);
+    // Mixing towards the dark end would give zero on the last class: that is
+    // why the dot is obtained by subtracting instead.
+    assert.ok(d > 3, `level ${t.i}: the grain disappears (gap ${d.toFixed(1)})`);
+    assert.ok(d < 25, `level ${t.i}: the grain draws too much attention (${d.toFixed(1)})`);
+  }
+});
+
+test('pattern ids are distinct, and the prefixes do not collide', () => {
+  const map = tones().map((t) => patternId(t.i, 'tone'));
+  const legend = tones().map((t) => patternId(t.i, 'legend'));
+  assert.equal(new Set([...map, ...legend]).size, LEVELS * 2);
 });
 
 test('fillFor returns a usable colour for every fraction', () => {
