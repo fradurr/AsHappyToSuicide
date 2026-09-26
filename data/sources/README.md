@@ -1,72 +1,73 @@
-# Fonti
+# Sources
 
-`build-data.js` cerca qui i due file di partenza. Non sono committati: si
-rigenerano o si ricompilano.
+`build-data.js` looks here for the two input files. Neither is committed: they
+are either downloaded or filled in.
 
-## Due strade
+## Two routes
 
-### A. I file ufficiali
+### A. The official files
 
-| file | contenuto | dove prenderlo |
+| file | contents | where to get it |
 |---|---|---|
-| `whr-figure-2.1.xlsx` | punteggio Cantril, media a tre anni | [worldhappiness.report/data-sharing](https://worldhappiness.report/data-sharing/) → *Data for Figure 2.1* |
-| `who-suicide-rate.csv` | tasso di suicidio standardizzato per età, per 100.000 | [Our World in Data](https://ourworldindata.org/grapher/death-rate-from-suicides-gho) → *Download* → *Full data (CSV)* |
+| `whr-figure-2.1.xlsx` | Cantril ladder score, three-year average | [worldhappiness.report/data-sharing](https://worldhappiness.report/data-sharing/) → *Data for Figure 2.1* |
+| `who-suicide-rate.csv` | age-standardised suicide rate, per 100,000 | [Our World in Data](https://ourworldindata.org/grapher/death-rate-from-suicides-gho) → *Download* → *Full data (CSV)* |
 
-Se il download automatico non parte — l'URL del WHR cambia a ogni edizione, e
-alcune reti bloccano entrambi gli host — scaricali a mano, salvali qui con
-questi nomi e lancia `npm run build:data -- --offline`.
+If the automatic download does not start — the WHR URL changes with every
+edition, and some networks block both hosts — fetch them by hand, save them here
+under those names and run `npm run build:data -- --offline`.
 
-### B. Tabelle compilate a mano
+### B. Tables filled in by hand
 
 ```
 npm run templates
 ```
 
-Scrive `data/templates/benessere.csv` e `data/templates/suicidi.csv`: una riga
-per ogni paese che la mappa sa disegnare, **con codice ISO3 e nome già dentro**.
-Resta da riempire l'ultima colonna.
+writes `data/templates/wellbeing.csv` and `data/templates/suicide.csv`: one row
+for every country the map can draw, **with the ISO3 code and the name already
+in place**. Only the last column is left to fill.
 
-Poi copiali qui come `benessere.csv` e `suicidi.csv` e lancia
+Then copy them here as `wellbeing.csv` and `suicide.csv` and run
 `npm run build:data -- --offline`.
 
-Il vantaggio non è la comodità: è che il codice ISO3 esplicito **elimina del
-tutto il problema della corrispondenza dei nomi**, che è il modo più probabile
-di rompere il join.
+The advantage is not convenience: an explicit ISO3 code **removes the
+name-matching problem entirely**, and that is the most likely way to break the
+join.
 
-## Nomi accettati
+## Accepted file names
 
-| fonte | uno di questi |
+| source | one of these |
 |---|---|
-| benessere | `whr-figure-2.1.xlsx`, `whr-figure-2.1.csv`, `benessere.csv`, `benessere.xlsx` |
-| suicidi | `who-suicide-rate.csv`, `who-suicide-rate.xlsx`, `suicidi.csv`, `suicidi.xlsx` |
+| wellbeing | `whr-figure-2.1.xlsx`, `whr-figure-2.1.csv`, `wellbeing.csv`, `wellbeing.xlsx` |
+| suicide | `who-suicide-rate.csv`, `who-suicide-rate.xlsx`, `suicide.csv`, `suicide.xlsx` |
 
-## Cosa deve contenere una tabella
+## What a table has to contain
 
-**Benessere** — una colonna col punteggio (`Ladder score`, `benessere`,
-`punteggio`) e una che identifichi il paese: meglio il codice (`iso3`, `Code`),
-in alternativa il nome (`Country name`, `paese`).
+**Wellbeing** — a score column (`Ladder score`, `wellbeing`, `score`) and one
+identifying the country: preferably the code (`iso3`, `Code`), otherwise the
+name (`Country name`, `country`).
 
-**Suicidi** — una colonna di codici ISO3 (`Code`, `iso3`) e una di valori
-(`tasso`, `valore`, `rate`). `Entity` e `Year` sono facoltativi: servono solo
-all'export di Our World in Data, che contiene più anni.
+**Suicide** — a column of ISO3 codes (`Code`, `iso3`) and one of values (`rate`,
+`value`). `Entity` and `Year` are optional: they only matter for the Our World
+in Data export, which carries several years.
 
-Valgono per entrambe:
+For both:
 
-- **cella vuota = paese senza dato.** Legittimo: resta grigio sulla mappa.
-- **cella piena ma illeggibile = errore.** Il build si ferma e dice quale riga.
-- la virgola decimale italiana va bene (`6,32`);
-- il benessere fuori da 0–10 e un tasso fuori da 0–200 per 100.000 fermano il
-  build: sono quasi sempre una colonna sbagliata o un errore di battitura.
+- **empty cell = a country with no figure.** Legitimate: it stays blank on the
+  map.
+- **filled but unreadable = an error.** The build stops and names the row.
+- a comma decimal separator is accepted (`6,32`);
+- a wellbeing score outside 0–10, or a rate outside 0–200 per 100,000, stops the
+  build: almost always a wrong column or a typo.
 
-## Da dove devono venire i numeri
+## Where the numbers have to come from
 
-Dalle fonti ufficiali sopra. Una tabella compilata a memoria o assemblata da
-fonti diverse produce una mappa che *sembra* verificabile e non lo è — ed è
-esattamente il contrario di quello che il progetto sostiene di fare. Se le due
-fonti coprono anni diversi, va dichiarato nella pagina «Metodo».
+From the official sources above. A table filled in from memory, or assembled
+from scattered sources, produces a map that *looks* checkable and is not — the
+exact opposite of what this project claims to do. If the two sources cover
+different years, that has to be stated on the method page.
 
-## Perché le stime GHE e non il Mortality Database
+## Why the GHE estimates and not the Mortality Database
 
-Le Global Health Estimates dell'OMS sono già corrette per sotto-notifica e per
-cause di morte mal definite, quindi sono confrontabili fra paesi. I dati grezzi
-del WHO Mortality Database non lo sono.
+The WHO's Global Health Estimates already correct for under-reporting and
+ill-defined causes of death, so they compare across countries. The raw Mortality
+Database figures do not.

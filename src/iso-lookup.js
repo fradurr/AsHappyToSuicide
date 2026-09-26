@@ -1,25 +1,25 @@
 /**
- * Tabella di conversione: nome del paese nel World Happiness Report -> ISO 3166-1 alpha-3.
+ * Lookup table: World Happiness Report country name -> ISO 3166-1 alpha-3.
  *
- * Il WHR pubblica i paesi solo per nome, in inglese, senza codice. Le grafie non
- * seguono nessuno standard e cambiano tra un'edizione e l'altra ("Czech Republic"
- * diventa "Czechia", "Turkey" diventa "Turkiye"). Questa tabella e' l'unico punto
- * in cui quelle grafie vengono riconciliate.
+ * The WHR publishes countries by name only, with no code. The spellings follow
+ * no standard and change between editions ("Czech Republic" becomes "Czechia",
+ * "Turkey" becomes "Turkiye"). This table is the single place where those
+ * spellings are reconciled.
  *
- * Regole:
- *   - una voce qui vince sempre sulla risoluzione automatica;
- *   - i nomi che coincidono gia' con la denominazione ISO inglese (Italy, France,
- *     Finland...) non hanno bisogno di una voce: li risolve `resolveIso3`;
- *   - `null` significa "entita' senza codice ISO 3166-1, esclusa di proposito":
- *     e' una decisione esplicita, non una dimenticanza.
+ * Rules:
+ *   - an entry here always beats automatic resolution;
+ *   - names that already match the ISO English denomination (Italy, France,
+ *     Finland...) need no entry: `resolveIso3` handles them;
+ *   - `null` means "entity with no ISO 3166-1 code, excluded on purpose": an
+ *     explicit decision, not an oversight.
  *
- * Se un nome non viene risolto ne' qui ne' automaticamente, lo script di build
- * si ferma con un errore. Un join rotto in silenzio e' il modo piu' probabile di
- * pubblicare una mappa sbagliata.
+ * If a name resolves neither here nor automatically, the build script stops
+ * with an error. A silently broken join is the most likely way to publish a
+ * wrong map.
  */
 
 export const WHR_NAME_TO_ISO3 = {
-  // --- Casi citati esplicitamente nel brief ---------------------------------
+  // --- Cases named explicitly in the brief ----------------------------------
   'Taiwan Province of China': 'TWN',
   'Hong Kong S.A.R. of China': 'HKG',
   'State of Palestine': 'PSE',
@@ -27,9 +27,9 @@ export const WHR_NAME_TO_ISO3 = {
   Czechia: 'CZE',
   'Congo (Brazzaville)': 'COG',
   'Congo (Kinshasa)': 'COD',
-  Kosovo: 'XKX', // codice non ufficiale (user-assigned), assente da world-atlas
+  Kosovo: 'XKX', // unofficial (user-assigned) code, absent from world-atlas
 
-  // --- Varianti storiche degli stessi paesi, per reggere edizioni diverse ----
+  // --- Older spellings of the same countries, to survive past editions ------
   Taiwan: 'TWN',
   'Hong Kong S.A.R., China': 'HKG',
   'Hong Kong': 'HKG',
@@ -43,7 +43,7 @@ export const WHR_NAME_TO_ISO3 = {
   'Congo, Rep.': 'COG',
   'Congo, Dem. Rep.': 'COD',
 
-  // --- Nomi brevi/colloquiali usati dal WHR ---------------------------------
+  // --- Short or colloquial names the WHR uses -------------------------------
   Bolivia: 'BOL',
   Brunei: 'BRN',
   'Cape Verde': 'CPV',
@@ -79,9 +79,9 @@ export const WHR_NAME_TO_ISO3 = {
   Myanmar: 'MMR',
   Burma: 'MMR',
 
-  // --- Entita' senza codice ISO 3166-1: escluse di proposito ----------------
-  // Compaiono in alcune edizioni del WHR ma non esistono ne' in ISO 3166-1 ne'
-  // nelle stime OMS, quindi non potrebbero mai avere dati completi.
+  // --- Entities with no ISO 3166-1 code: excluded on purpose ----------------
+  // They appear in some WHR editions but exist neither in ISO 3166-1 nor in the
+  // WHO estimates, so they could never have complete data.
   'North Cyprus': null,
   'Northern Cyprus': null,
   'Somaliland region': null,
@@ -89,7 +89,7 @@ export const WHR_NAME_TO_ISO3 = {
   Somaliland: null,
 };
 
-/** Nomi che il WHR usa e che vanno tenuti fuori dal join senza far fallire il build. */
+/** Names the WHR uses that stay out of the join without failing the build. */
 export const INTENTIONALLY_UNMAPPED = new Set(
   Object.entries(WHR_NAME_TO_ISO3)
     .filter(([, iso3]) => iso3 === null)
@@ -97,15 +97,15 @@ export const INTENTIONALLY_UNMAPPED = new Set(
 );
 
 /**
- * Feature di world-atlas prive di `id` numerico, identificate per nome.
- * A 1:110m sono tre: N. Cyprus, Somaliland, Kosovo. Solo il Kosovo ha un codice
- * (non ufficiale) e compare nel WHR.
+ * world-atlas features with no numeric `id`, identified by name instead.
+ * At 1:110m there are three: N. Cyprus, Somaliland, Kosovo. Only Kosovo has a
+ * code (unofficial) and appears in the WHR.
  */
 export const GEO_NAME_TO_ISO3 = {
   Kosovo: 'XKX',
 };
 
-/** Normalizza una grafia per il confronto: spazi, apostrofi tipografici, accenti. */
+/** Normalises a spelling for comparison: spaces, typographic quotes, accents. */
 export function normalizeName(name) {
   return String(name)
     .normalize('NFKD')

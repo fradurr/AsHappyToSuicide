@@ -1,57 +1,57 @@
 /**
- * main.js — mappa, zoom/pan, pannello.
+ * main.js — the map, zoom and pan, and the country panel.
  *
- * Il frontend non fa matematica: legge un JSON gia' calcolato e per ogni
- * poligono cerca il suo ISO3. Trovato -> tono. Non trovato -> vuoto.
+ * The front end does no maths: it reads a JSON that the build script has
+ * already computed, and for each polygon looks up its ISO3 code. Found, and it
+ * gets a tone; not found, and it stays empty.
  *
- * Niente colore. Il tema parla di morti, e una scala cromatica trasformerebbe
- * i paesi in caselle rosse e verdi, cioe' in un giudizio. L'intensita' e' resa
- * da un grigio pieno: piu' scuro dove la mortalita' per suicidio e' piu' alta.
- * La mappa mostra quindi le morti; il valore della felicita' vive nel pannello.
+ * No colour. The subject is deaths, and a colour ramp would turn countries into
+ * red and green cells, which reads as a report card. The scale is flat grey:
+ * darker where suicide mortality is higher. So the map shows the deaths, and
+ * the happiness value lives in the panel.
  */
 
-// Literata: serif disegnato per la lettura su schermo. Bookerly, il font dei
-// Kindle, e' proprietario di Amazon e non ha licenza web. Autoospitato via
-// pacchetto npm invece che da CDN: nessuna richiesta a terzi.
-import '@fontsource-variable/literata/wght.css';
+// Literata: a serif drawn for reading on screen. Bookerly, the Kindle typeface,
+// belongs to Amazon and has no web licence. Self-hosted through an npm package
+// rather than a CDN, so the site makes no third-party requests.
+import './font.css';
 
 import { geoEqualEarth, geoPath } from 'd3-geo';
 import { select } from 'd3-selection';
 import { zoom } from 'd3-zoom';
 import { feature } from 'topojson-client';
 
-import { creaToni, idTono, livelloPerFrazione, toni, LIVELLI } from './toni.js';
+import { fillFor, tones, LEVELS } from './scale.js';
 
-const SPESSORE_CONFINE = 0.35;
+const BORDER_WIDTH = 0.35;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 8;
 
-/** Il massimo della scala si arrotonda in su, per una legenda leggibile. */
-const GRADINO_SCALA = 5;
-
-const fmt = (n, d = 1) => n.toLocaleString('it-IT', { minimumFractionDigits: d, maximumFractionDigits: d });
+/** The top of the scale rounds up to this, so the legend reads cleanly. */
+const SCALE_STEP = 5;
 
 /**
- * Tutti i file di dati si chiedono relativi a questa base.
+ * Every data file is requested relative to this base.
  *
- * Su GitHub Pages il sito non sta alla radice del dominio ma dentro una
- * sottocartella col nome del repository. Un percorso che comincia per "/"
- * punterebbe alla radice e darebbe 404 ovunque tranne che in locale: Vite
- * riempie BASE_URL con la base giusta in fase di build.
+ * On GitHub Pages the site does not sit at the root of the domain but inside a
+ * folder named after the repository. A path starting with "/" would point at
+ * the root and 404 everywhere except locally; Vite fills BASE_URL in at build
+ * time with the right base.
  */
 const BASE = import.meta.env.BASE_URL;
 
+const fmt = (n, digits = 1) =>
+  n.toLocaleString('en-GB', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
 /**
- * Vite risponde con l'index.html a qualsiasi percorso sconosciuto, quindi un
- * file dati mancante arriva come 200 con content-type html. Senza questo
- * controllo l'errore sarebbe un JSON.parse incomprensibile invece di
- * "il file non c'e'".
+ * Vite answers any unknown path with index.html, so a missing data file arrives
+ * as a 200 with an HTML content type. Without this check the error would be an
+ * inscrutable JSON.parse failure instead of "the file is not there".
  */
-async function caricaJson(url) {
+async function loadJson(url) {
   const res = await fetch(url);
   if (!res.ok) return null;
-  const tipo = res.headers.get('content-type') || '';
-  if (!tipo.includes('json')) return null;
+  if (!(res.headers.get('content-type') || '').includes('json')) return null;
   try {
     return await res.json();
   } catch {
@@ -59,285 +59,263 @@ async function caricaJson(url) {
   }
 }
 
-async function caricaDati() {
-  const veri = await caricaJson(`${BASE}data/countries.json`);
-  if (veri) return veri;
-  const finti = await caricaJson(`${BASE}data/countries.placeholder.json`);
-  if (finti) return finti;
-  return null;
+async function loadData() {
+  return (
+    (await loadJson(`${BASE}data/countries.json`)) ??
+    (await loadJson(`${BASE}data/countries.placeholder.json`))
+  );
 }
 
 // ---------------------------------------------------------------------------
 
 const el = {
-  svg: select('#mappa'),
-  scena: document.querySelector('.scena'),
-  pannello: document.getElementById('pannello'),
-  paese: document.getElementById('paese'),
-  indiceBlocco: document.getElementById('indice-blocco'),
-  indice: document.getElementById('indice'),
-  dettagli: document.getElementById('dettagli'),
-  whr: document.getElementById('whr'),
-  suicidi: document.getElementById('suicidi'),
-  posizioni: document.getElementById('posizioni'),
-  senzaDati: document.getElementById('senza-dati'),
-  chiudi: document.getElementById('chiudi'),
-  avviso: document.getElementById('avviso'),
+  svg: select('#map'),
+  stage: document.querySelector('.stage'),
+  panel: document.getElementById('panel'),
+  country: document.getElementById('country'),
+  valueBlock: document.getElementById('value-block'),
+  value: document.getElementById('value'),
+  details: document.getElementById('details'),
+  wellbeing: document.getElementById('wellbeing'),
+  suicide: document.getElementById('suicide'),
+  ranks: document.getElementById('ranks'),
+  noData: document.getElementById('no-data'),
+  closePanel: document.getElementById('close-panel'),
+  notice: document.getElementById('notice'),
   intro: document.getElementById('intro'),
-  vaiAllaMappa: document.getElementById('vai-alla-mappa'),
-  leggi: document.getElementById('leggi'),
-  lettura: document.getElementById('lettura'),
-  letturaChiudi: document.getElementById('lettura-chiudi'),
+  enter: document.getElementById('enter'),
+  readMore: document.getElementById('read-more'),
+  method: document.getElementById('method'),
+  methodClose: document.getElementById('method-close'),
 };
 
 /**
- * Prima schermata e testo del metodo.
+ * Intro screen and method text.
  *
- * Stanno fuori da `avvia()` perche' devono funzionare anche se il caricamento
- * dei dati fallisce: chi arriva sul sito ha diritto di sapere di cosa si parla
- * comunque, e i numeri di ascolto in fondo al metodo non devono dipendere dal
- * fatto che una fetch sia andata a buon fine.
+ * Wired up outside `start()` because they have to work even if loading the data
+ * fails: someone arriving on the site is entitled to know what it is about
+ * either way, and the helpline numbers at the end of the method must not depend
+ * on a fetch having succeeded.
  */
-function collegaIntroELettura() {
-  el.vaiAllaMappa?.addEventListener('click', () => {
-    el.intro.classList.add('via');
-    // Tolto dal flusso solo a transizione finita, altrimenti sparisce di scatto.
-    const fine = () => {
+function wireIntroAndMethod() {
+  el.enter?.addEventListener('click', () => {
+    el.intro.classList.add('gone');
+    // Taken out of the flow only once the transition ends, or it would vanish.
+    const done = () => {
       el.intro.hidden = true;
-      el.intro.removeEventListener('transitionend', fine);
+      el.intro.removeEventListener('transitionend', done);
     };
-    el.intro.addEventListener('transitionend', fine);
-    // Se le transizioni sono disattivate transitionend non arriva mai.
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) fine();
-    el.leggi?.focus();
+    el.intro.addEventListener('transitionend', done);
+    // With transitions off, transitionend never fires.
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) done();
+    el.readMore?.focus();
   });
 
-  // <dialog> porta in dote la trappola del focus, Esc per chiudere e il
-  // ripristino del focus all'elemento che l'ha aperto: non serve rifarlo a mano.
-  el.leggi?.addEventListener('click', () => el.lettura?.showModal());
-  el.letturaChiudi?.addEventListener('click', () => el.lettura?.close());
-  el.lettura?.addEventListener('click', (ev) => {
-    // Clic sullo sfondo: il target e' il dialog stesso solo fuori dal contenuto.
-    if (ev.target === el.lettura) el.lettura.close();
+  // <dialog> brings the focus trap, Esc to close and focus restoration with it:
+  // hand-rolling those would only be worse.
+  el.readMore?.addEventListener('click', () => el.method?.showModal());
+  el.methodClose?.addEventListener('click', () => el.method?.close());
+  el.method?.addEventListener('click', (ev) => {
+    // A click on the backdrop: the target is the dialog itself only outside the
+    // content box.
+    if (ev.target === el.method) el.method.close();
   });
 }
 
-collegaIntroELettura();
+wireIntroAndMethod();
 
-async function avvia() {
-  const [topo, geoIso, dati] = await Promise.all([
-    caricaJson(`${BASE}geo/countries-110m.json`),
-    caricaJson(`${BASE}data/geo-iso.json`),
-    caricaDati(),
+async function start() {
+  const [topo, geoIso, data] = await Promise.all([
+    loadJson(`${BASE}geo/countries-110m.json`),
+    loadJson(`${BASE}data/geo-iso.json`),
+    loadData(),
   ]);
 
   if (!topo) {
-    document.body.innerHTML = '<p style="padding:24px">Geometrie non caricate: manca public/geo/countries-110m.json</p>';
+    document.body.innerHTML =
+      '<p style="padding:24px">Geometry failed to load: public/geo/countries-110m.json is missing.</p>';
     return;
   }
 
-  if (dati?.meta?.placeholder) {
-    el.avviso.hidden = false;
-    el.avviso.textContent =
-      'DATI DI ESEMPIO — i numeri sono inventati e non hanno alcun rapporto con il benessere o la mortalità reali.';
+  if (data?.meta?.placeholder) {
+    el.notice.hidden = false;
+    el.notice.textContent =
+      'SAMPLE DATA — these numbers are invented and bear no relation to real wellbeing or mortality.';
   }
 
-  // L'Antartide si esclude: e' una massa enorme, nessuna fonte le attribuisce
-  // un dato, e in Equal Earth occupa tutta la fascia bassa senza dire niente.
-  const ESCLUSI = new Set(['010']);
-  const paesi = feature(topo, topo.objects.countries).features.filter(
-    (f) => !ESCLUSI.has(String(f.id)),
+  // Antarctica is left out: a huge mass, no source assigns it a value, and in
+  // Equal Earth it takes up the whole bottom band while saying nothing.
+  const EXCLUDED = new Set(['010']);
+  const countries = feature(topo, topo.objects.countries).features.filter(
+    (f) => !EXCLUDED.has(String(f.id)),
   );
   const byId = geoIso?.byId ?? {};
   const byName = geoIso?.byName ?? {};
-  const valori = dati?.countries ?? {};
+  const values = data?.countries ?? {};
 
-  const iso3Di = (f) => byId[String(f.id)] ?? byName[f.properties?.name] ?? null;
+  const iso3Of = (f) => byId[String(f.id)] ?? byName[f.properties?.name] ?? null;
 
-  // La scala parte da zero: per una mortalita' far partire l'asse dal minimo
-  // osservato gonfierebbe le differenze fra paesi che stanno tutti in basso.
-  const tassi = Object.values(valori)
+  // The scale starts at zero: for a mortality rate, starting the axis at the
+  // lowest observed value would inflate differences between countries that are
+  // all near the bottom.
+  const rates = Object.values(values)
     .map((v) => v.suicide)
     .filter((x) => Number.isFinite(x));
-  const tassoMax = tassi.length
-    ? Math.ceil(Math.max(...tassi) / GRADINO_SCALA) * GRADINO_SCALA
-    : GRADINO_SCALA;
-  const frazioneDi = (tasso) => (tassoMax > 0 ? tasso / tassoMax : 0);
+  const maxRate = rates.length
+    ? Math.ceil(Math.max(...rates) / SCALE_STEP) * SCALE_STEP
+    : SCALE_STEP;
+  const fractionOf = (rate) => (maxRate > 0 ? rate / maxRate : 0);
 
-  const proiezione = geoEqualEarth();
-  const percorso = geoPath(proiezione);
+  const projection = geoEqualEarth();
+  const path = geoPath(projection);
 
-  const defs = el.svg.append('defs');
-  creaToni(defs);
-  disegnaLegenda(tassoMax);
+  drawLegend(maxRate);
 
   const gZoom = el.svg.append('g').attr('class', 'zoom-layer');
-  const selPaesi = gZoom
+  const paths = gZoom
     .selectAll('path')
-    .data(paesi)
+    .data(countries)
     .join('path')
-    .attr('class', (f) => (valori[iso3Di(f)] ? 'paese ha-dati' : 'paese'))
-    // Stile inline e non attributo: un attributo di presentazione perde contro
-    // qualsiasi regola CSS, e il fondo di .paese vincerebbe sempre.
+    .attr('class', (f) => (values[iso3Of(f)] ? 'country has-data' : 'country'))
+    // Inline style rather than attribute: a presentation attribute loses against
+    // any CSS rule, and the background of .country would always win.
     .style('fill', (f) => {
-      const v = valori[iso3Di(f)];
-      if (!v) return null; // senza dati -> resta il fondo carta, nessun tono
-      return `url(#${idTono(livelloPerFrazione(frazioneDi(v.suicide)))})`;
+      const v = values[iso3Of(f)];
+      return v ? fillFor(fractionOf(v.suicide)) : null; // no data -> paper
     })
-    .attr('stroke-width', SPESSORE_CONFINE)
+    .attr('stroke-width', BORDER_WIDTH)
     .attr('tabindex', 0)
     .attr('role', 'button')
     .attr('aria-label', (f) => {
-      const iso3 = iso3Di(f);
-      const v = valori[iso3];
-      const nome = v?.name ?? f.properties?.name ?? 'senza nome';
+      const v = values[iso3Of(f)];
+      const name = v?.name ?? f.properties?.name ?? 'unnamed';
       return v
-        ? `${nome}, mortalità per suicidio ${fmt(v.suicide)} per 100.000, indice ${fmt(v.index)} su 100`
-        : `${nome}, dati non disponibili`;
+        ? `${name}, suicide mortality ${fmt(v.suicide)} per 100,000, happiness value ${fmt(v.index)} out of 100`
+        : `${name}, no data available`;
     })
-    .on('click', (ev, f) => seleziona(f))
+    .on('click', (ev, f) => selectCountry(f))
     .on('keydown', (ev, f) => {
       if (ev.key === 'Enter' || ev.key === ' ') {
         ev.preventDefault();
-        seleziona(f);
+        selectCountry(f);
       }
     });
 
-  // --- dimensione e proiezione ---------------------------------------------
-  function ridimensiona() {
-    const { width, height } = el.scena.getBoundingClientRect();
+  // --- size and projection --------------------------------------------------
+  function resize() {
+    const { width, height } = el.stage.getBoundingClientRect();
     el.svg.attr('viewBox', `0 0 ${width} ${height}`);
-    proiezione.fitExtent(
+    projection.fitExtent(
       [
         [8, 8],
         [width - 8, height - 8],
       ],
       { type: 'Sphere' },
     );
-    selPaesi.attr('d', percorso);
+    paths.attr('d', path);
   }
-  ridimensiona();
-  new ResizeObserver(ridimensiona).observe(el.scena);
+  resize();
+  new ResizeObserver(resize).observe(el.stage);
 
-  // --- zoom e pan -----------------------------------------------------------
-  const comportamentoZoom = zoom()
-    .scaleExtent([ZOOM_MIN, ZOOM_MAX])
-    .on('zoom', (ev) => {
-      const { k } = ev.transform;
-      gZoom.attr('transform', ev.transform);
-      // Senza questo i confini a zoom alto sembrano muri.
-      selPaesi.attr('stroke-width', SPESSORE_CONFINE / k);
-      // I <pattern> vivono nello spazio utente del path, quindi senza correzione
-      // lo zoom ingrandirebbe la griglia insieme alla geografia, e a scala 8
-      // una grana impercettibile diventerebbe pois. La controscala piena la
-      // tiene identica in pixel schermo a ogni scala.
-      defs.selectAll('pattern').attr('patternTransform', `scale(${1 / k})`);
-    });
-  el.svg.call(comportamentoZoom);
+  // --- zoom and pan ---------------------------------------------------------
+  el.svg.call(
+    zoom()
+      .scaleExtent([ZOOM_MIN, ZOOM_MAX])
+      .on('zoom', (ev) => {
+        gZoom.attr('transform', ev.transform);
+        // Without this the borders look like walls at high zoom.
+        paths.attr('stroke-width', BORDER_WIDTH / ev.transform.k);
+      }),
+  );
 
-  // --- selezione ------------------------------------------------------------
-  function seleziona(f) {
-    const iso3 = iso3Di(f);
-    const v = valori[iso3];
-    const nome = v?.name ?? f.properties?.name ?? '—';
-
-    selPaesi.classed('selezionato', (d) => d === f);
-
-    el.paese.textContent = nome;
+  // --- selection ------------------------------------------------------------
+  function selectCountry(f) {
+    const v = values[iso3Of(f)];
+    paths.classed('selected', (d) => d === f);
+    el.country.textContent = v?.name ?? f.properties?.name ?? '—';
 
     if (v) {
-      el.indiceBlocco.hidden = false;
-      el.dettagli.hidden = false;
-      el.senzaDati.hidden = true;
-      el.indice.textContent = fmt(v.index);
-      el.whr.textContent = fmt(v.whr, 2);
-      el.suicidi.textContent = fmt(v.suicide);
+      el.valueBlock.hidden = false;
+      el.details.hidden = false;
+      el.noData.hidden = true;
+      el.value.textContent = fmt(v.index);
+      el.wellbeing.textContent = fmt(v.whr, 2);
+      el.suicide.textContent = fmt(v.suicide);
 
       const delta = v.rankDelta ?? v.rankWhr - v.rank;
-      const verso =
+      const places = (n) => (Math.abs(n) === 1 ? 'place' : 'places');
+      const movement =
         delta === 0
-          ? 'Stessa posizione nelle due classifiche.'
+          ? 'The same position in both rankings.'
           : delta > 0
-            ? `Sale di <strong>${delta}</strong> ${delta === 1 ? 'posizione' : 'posizioni'} quando i suicidi entrano nel conto.`
-            : `Scende di <strong>${Math.abs(delta)}</strong> ${Math.abs(delta) === 1 ? 'posizione' : 'posizioni'} quando i suicidi entrano nel conto.`;
-      el.posizioni.innerHTML =
-        `Posizione per valore della felicità: <strong>${v.rank}</strong>. ` +
-        `Con il solo punteggio di benessere: <strong>${v.rankWhr}</strong>. ${verso}`;
+            ? `Rises <strong>${delta}</strong> ${places(delta)} once suicides are counted.`
+            : `Falls <strong>${Math.abs(delta)}</strong> ${places(delta)} once suicides are counted.`;
+      el.ranks.innerHTML =
+        `Position by happiness value: <strong>${v.rank}</strong>. ` +
+        `By the wellbeing score alone: <strong>${v.rankWhr}</strong>. ${movement}`;
     } else {
-      el.indiceBlocco.hidden = true;
-      el.dettagli.hidden = true;
-      el.senzaDati.hidden = false;
-      el.senzaDati.textContent = 'Dati non disponibili per questo paese.';
+      el.valueBlock.hidden = true;
+      el.details.hidden = true;
+      el.noData.hidden = false;
+      el.noData.textContent = 'No data available for this country.';
     }
 
-    apri();
+    open();
   }
 
   el.svg.on('click', (ev) => {
-    if (ev.target.tagName !== 'path') chiudi();
+    if (ev.target.tagName !== 'path') close();
   });
 
   window.addEventListener('keydown', (ev) => {
-    // Mentre il metodo e' aperto, Esc spetta al dialog: chiuderebbe entrambi.
-    if (ev.key === 'Escape' && !el.lettura?.open) chiudi();
+    // While the method dialog is open, Esc belongs to it: otherwise one key
+    // would close both.
+    if (ev.key === 'Escape' && !el.method?.open) close();
   });
 
-  el.chiudi.addEventListener('click', chiudi);
+  el.closePanel.addEventListener('click', close);
 
-
-  function apri() {
-    el.pannello.inert = false;
-    document.body.classList.add('pannello-aperto');
+  function open() {
+    el.panel.inert = false;
+    document.body.classList.add('panel-open');
   }
 
-  function chiudi() {
-    document.body.classList.remove('pannello-aperto');
-    // Chiuso il pannello e' fuori schermo ma resterebbe raggiungibile da
-    // tastiera e dallo screen reader: inert lo toglie di mezzo davvero.
-    el.pannello.inert = true;
-    selPaesi.classed('selezionato', false);
+  function close() {
+    document.body.classList.remove('panel-open');
+    // Closed, the panel is off screen but would still be reachable by keyboard
+    // and screen reader: inert actually takes it out of the way.
+    el.panel.inert = true;
+    paths.classed('selected', false);
   }
-  el.pannello.inert = true;
+  el.panel.inert = true;
 }
 
-/**
- * La legenda ha i propri <pattern>, non riusa quelli della mappa: vive in un
- * altro <svg>, e un url(#id) non attraversa i confini di un documento SVG.
- */
-function disegnaLegenda(tassoMax) {
-  const svg = select('#legenda-scala');
+/** The legend swatches: plain rectangles, the same flat fills as the map. */
+function drawLegend(maxRate) {
+  const svg = select('#legend-scale');
   if (svg.empty()) return;
 
-  const estremi = document.querySelectorAll('.legenda-estremi span');
-  if (estremi.length === 2) {
-    estremi[0].textContent = '0';
-    estremi[1].textContent = String(tassoMax);
+  const ends = document.querySelectorAll('.legend-ends span');
+  if (ends.length === 2) {
+    ends[0].textContent = '0';
+    ends[1].textContent = String(maxRate);
   }
 
-  const LATO = 22;
-  const PASSO = 2;
-  const larghezza = LIVELLI * LATO + (LIVELLI - 1) * PASSO;
-  svg.attr('width', larghezza).attr('height', LATO).attr('viewBox', `0 0 ${larghezza} ${LATO}`);
+  const SIDE = 22;
+  const GAP = 2;
+  const width = LEVELS * SIDE + (LEVELS - 1) * GAP;
+  svg.attr('width', width).attr('height', SIDE).attr('viewBox', `0 0 ${width} ${SIDE}`);
 
-  creaToni(svg.append('defs'), 'legenda');
-
-  // Da sinistra a destra: poche morti (chiaro) -> molte morti (scuro).
-  //
-  // I campioni stanno dentro un <g> e si selezionano da li'. Un
-  // svg.selectAll('rect') pescherebbe anche i <rect> di fondo dentro ai
-  // <pattern>, che sono discendenti dello stesso <svg>: d3 ci legherebbe sopra
-  // i dati e la legenda resterebbe vuota.
+  // Left to right: few deaths (light) -> many deaths (dark).
   svg
-    .append('g')
-    .attr('class', 'campioni')
     .selectAll('rect')
-    .data(toni())
+    .data(tones())
     .join('rect')
-    .attr('x', (d) => d.i * (LATO + PASSO))
+    .attr('x', (d) => d.i * (SIDE + GAP))
     .attr('y', 0)
-    .attr('width', LATO)
-    .attr('height', LATO)
-    .attr('fill', (d) => `url(#${idTono(d.i, 'legenda')})`);
+    .attr('width', SIDE)
+    .attr('height', SIDE)
+    .attr('fill', (d) => d.fill);
 }
 
-avvia();
+start();

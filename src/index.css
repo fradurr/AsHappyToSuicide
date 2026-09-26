@@ -1,39 +1,33 @@
 /*
- * Impianto bicolore, riferimento e-ink: carta grigio chiaro e calda, inchiostro
- * nero sporco. Nessuna tinta in nessun punto dell'interfaccia.
+ * Two-tone layout, e-ink reference: warm light-grey paper, off-black ink.
+ * No hue anywhere in the interface.
  *
- * Non e' solo una preferenza estetica. Una scala cromatica su una mappa di
- * mortalita' trasforma i paesi in caselle rosse e verdi, cioe' in una pagella.
- * Il bicolore toglie quel giudizio e lascia il confronto.
+ * Not only a preference. A colour ramp over a mortality map turns countries
+ * into red and green cells, which reads as a report card. Two tones drop the
+ * verdict and leave the comparison.
  *
- * Resta un segnaposto: proporzioni e tipografia si rifanno con gli schizzi.
+ * Still a placeholder: proportions and typography get redone with the sketches.
  */
 
 :root {
-  --carta: #efebe4;
-  --carta-alta: #f6f3ed;
-  --inchiostro: #26241f;
-  --inchiostro-tenue: #6e6960;
-  --filo: #cfc9bd;
-  --pannello-largh: 380px;
-  --traslazione: 150px;
-  --durata: 180ms;
+  --paper: #efebe4;
+  --paper-raised: #f6f3ed;
+  --ink: #26241f;
+  --ink-soft: #6e6960;
+  --hairline: #cfc9bd;
+  --panel-width: 380px;
+  --shift: 150px;
+  --duration: 180ms;
 }
 
 * { box-sizing: border-box; }
 
-/*
- * Literata: serif disegnato per la lettura su schermo, licenza SIL Open Font.
- * E' il sostituto piu' vicino a Bookerly, il font dei Kindle, che e' proprietario
- * di Amazon e non si puo' usare sul web. Autoospitato: nessuna richiesta a terzi,
- * quindi nessun problema di dati personali verso un CDN esterno.
- */
 html, body {
   margin: 0;
   height: 100%;
-  background: var(--carta);
-  color: var(--inchiostro);
-  font-family: "Literata Variable", ui-serif, Georgia, serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Literata, ui-serif, Georgia, serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -43,13 +37,15 @@ body {
   overflow: hidden;
 }
 
-/* --- avviso dati finti ---------------------------------------------------- */
-/* Senza colore l'allarme lo dà il contrasto invertito: inchiostro pieno. */
+a { color: inherit; }
 
-.avviso {
+/* --- sample-data notice --------------------------------------------------- */
+/* With no colour available, the alarm comes from inverted contrast. */
+
+.notice {
   padding: 8px 16px;
-  background: var(--inchiostro);
-  color: var(--carta);
+  background: var(--ink);
+  color: var(--paper);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -57,57 +53,56 @@ body {
   text-align: center;
 }
 
-/* --- scena ---------------------------------------------------------------- */
+/* --- stage ---------------------------------------------------------------- */
 
-.scena {
+.stage {
   position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.mappa-wrap {
+.map-wrap {
   position: absolute;
   inset: 0;
-  transition: transform var(--durata) ease;
+  transition: transform var(--duration) ease;
 }
 
-/* Il click su un paese con dati sposta la mappa appena a sinistra e fa posto
-   alla colonna. La mappa resta visibile: e' sempre lei il soggetto. */
-body.pannello-aperto .mappa-wrap {
-  transform: translateX(calc(-1 * var(--traslazione)));
+/* Clicking a country with data nudges the map left to make room for the panel.
+   The map stays in view: it is still the subject. */
+body.panel-open .map-wrap {
+  transform: translateX(calc(-1 * var(--shift)));
 }
 
-#mappa {
+#map {
   display: block;
   width: 100%;
   height: 100%;
   cursor: grab;
 }
-#mappa:active { cursor: grabbing; }
+#map:active { cursor: grabbing; }
 
-/* Il riempimento arriva da un <pattern> impostato via JS. Qui resta solo il
-   caso "senza dati": nessun punto, solo il filo del confine. */
-.paese {
+/* The fill is a flat colour set from JS. What is left here is the no-data case:
+   paper, with only the border drawn. */
+.country {
   fill: none;
-  stroke: var(--filo);
+  stroke: var(--hairline);
   stroke-linejoin: round;
   outline: none;
 }
-.paese.ha-dati { cursor: pointer; stroke: var(--inchiostro); }
-.paese:focus-visible,
-.paese.selezionato {
-  stroke: var(--inchiostro);
+.country.has-data { cursor: pointer; stroke: var(--ink); }
+.country:focus-visible,
+.country.selected {
+  stroke: var(--ink);
   stroke-width: 1.6px;
 }
 
-/* --- legenda -------------------------------------------------------------- */
-/* Una scala di densità non si legge da sola come si legge un gradiente di
-   colore: va dichiarata, o il retino resta decorazione. */
+/* --- legend --------------------------------------------------------------- */
 
-/* Legenda e tasto del metodo stanno insieme nell'angolo: la legenda cambia
-   altezza col contenuto, quindi ancorarli separatamente li farebbe scollare. */
-.angolo {
+/* Legend and method button sit together in the corner: the legend changes
+   height with its content, so anchoring them separately would drift them
+   apart. */
+.corner {
   position: absolute;
   left: 20px;
   bottom: 20px;
@@ -116,78 +111,86 @@ body.pannello-aperto .mappa-wrap {
   gap: 10px;
 }
 
-.legenda {
+.legend {
+  margin: 0;
   padding: 12px 14px;
-  background: var(--carta-alta);
-  border: 1px solid var(--filo);
+  background: var(--paper-raised);
+  border: 1px solid var(--hairline);
   font-size: 11px;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
   pointer-events: none;
 }
 
-.leggi { pointer-events: auto; }
+.read-more {
+  padding: 8px 15px;
+  border: 1px solid var(--hairline);
+  background: var(--paper-raised);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.read-more:hover { border-color: var(--ink); }
 
-.legenda-titolo {
+.legend-title {
   margin: 0 0 8px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--inchiostro);
+  color: var(--ink);
 }
 
-.legenda-scala {
-  display: flex;
-  gap: 2px;
-}
-.legenda-scala .campioni rect { stroke: var(--filo); }
+.legend-scale { display: block; }
+.legend-scale rect { stroke: var(--hairline); }
 
-.legenda-estremi {
+.legend-ends {
   display: flex;
   justify-content: space-between;
   margin-top: 5px;
 }
 
-.legenda-unita {
+.legend-unit {
   margin-top: 2px;
   font-size: 10px;
   opacity: 0.75;
 }
 
-.legenda-vuoto {
+.legend-empty {
   display: flex;
   align-items: center;
   gap: 7px;
   margin-top: 10px;
   padding-top: 9px;
-  border-top: 1px solid var(--filo);
+  border-top: 1px solid var(--hairline);
 }
-.legenda-vuoto i {
+.legend-empty i {
   width: 20px;
   height: 14px;
-  border: 1px solid var(--filo);
-  background: var(--carta);
+  border: 1px solid var(--hairline);
+  background: var(--paper);
 }
 
-/* --- pannello ------------------------------------------------------------- */
+/* --- country panel -------------------------------------------------------- */
 
-.pannello {
+.panel {
   position: absolute;
   top: 0;
   right: 0;
-  width: var(--pannello-largh);
+  width: var(--panel-width);
   max-width: 100%;
   height: 100%;
   padding: 28px 28px 24px;
-  background: var(--carta-alta);
-  border-left: 1px solid var(--filo);
+  background: var(--paper-raised);
+  border-left: 1px solid var(--hairline);
   overflow-y: auto;
   transform: translateX(100%);
-  transition: transform var(--durata) ease;
+  transition: transform var(--duration) ease;
 }
-body.pannello-aperto .pannello { transform: translateX(0); }
+body.panel-open .panel { transform: translateX(0); }
 
-.chiudi {
+.close {
   position: absolute;
   top: 12px;
   right: 14px;
@@ -195,33 +198,31 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   height: 32px;
   border: 0;
   background: transparent;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
 }
-.chiudi:hover { color: var(--inchiostro); }
+.close:hover { color: var(--ink); }
 
-.pannello-paese {
+.panel-country {
   margin: 4px 0 2px;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
 
-/* --- l'indice ------------------------------------------------------------- */
-
-.indice-blocco {
+.value-block {
   padding: 4px 0 14px;
-  border-bottom: 1px solid var(--filo);
+  border-bottom: 1px solid var(--hairline);
 }
-.indice-blocco[hidden],
-.dettagli[hidden],
-.senza-dati[hidden] { display: none; }
+.value-block[hidden],
+.details[hidden],
+.no-data[hidden] { display: none; }
 
-.indice-valore {
+.value-number {
   display: block;
   font-size: clamp(64px, 12vw, 104px);
   font-weight: 400;
@@ -230,52 +231,50 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-.indice-etichetta {
+.value-label {
   display: inline-block;
   margin-top: 10px;
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
 
-/* --- le componenti -------------------------------------------------------- */
+.details { padding-top: 6px; }
 
-.dettagli { padding-top: 6px; }
-
-.componenti { margin: 0; }
-.componenti > div {
+.components { margin: 0; }
+.components > div {
   padding: 13px 0;
-  border-bottom: 1px solid var(--filo);
+  border-bottom: 1px solid var(--hairline);
 }
-.componenti dt {
+.components dt {
   font-size: 12px;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
-.componenti .unita { opacity: 0.7; }
-.componenti dd {
+.components .unit { opacity: 0.7; }
+.components dd {
   margin: 3px 0 0;
   font-size: 30px;
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-.posizioni {
+.ranks {
   margin: 18px 0 0;
   font-size: 15px;
   line-height: 1.6;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
-.posizioni strong {
+.ranks strong {
   font-weight: 400;
-  color: var(--inchiostro);
-  border-bottom: 1px solid var(--filo);
+  color: var(--ink);
+  border-bottom: 1px solid var(--hairline);
 }
 
-.senza-dati {
+.no-data {
   margin: 14px 0 0;
   font-size: 15px;
   line-height: 1.55;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
 
 /* --- footer --------------------------------------------------------------- */
@@ -286,39 +285,14 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   gap: 4px 20px;
   justify-content: space-between;
   padding: 10px 16px;
-  border-top: 1px solid var(--filo);
-  background: var(--carta-alta);
+  border-top: 1px solid var(--hairline);
+  background: var(--paper-raised);
   font-size: 11px;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
-.ascolto { color: var(--inchiostro); }
+.help { color: var(--ink); }
 
-/* --- mobile: il pannello diventa un bottom sheet -------------------------- */
-
-@media (max-width: 720px) {
-  .pannello {
-    top: auto;
-    bottom: 0;
-    width: 100%;
-    height: auto;
-    max-height: 72%;
-    padding: 20px 20px 16px;
-    border-left: 0;
-    border-top: 1px solid var(--filo);
-    transform: translateY(100%);
-  }
-  body.pannello-aperto .pannello { transform: translateY(0); }
-  /* Su mobile la mappa non trasla: il foglio le cresce sotto. */
-  body.pannello-aperto .mappa-wrap { transform: none; }
-  .indice-valore { font-size: 62px; }
-  .legenda { padding: 9px 11px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; }
-}
-
-/* --- prima schermata ------------------------------------------------------ */
+/* --- first screen --------------------------------------------------------- */
 
 .intro {
   position: fixed;
@@ -328,19 +302,19 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   align-items: center;
   justify-content: center;
   padding: 32px;
-  background: var(--carta);
+  background: var(--paper);
   opacity: 1;
-  transition: opacity var(--durata) ease;
+  transition: opacity var(--duration) ease;
 }
-.intro.via { opacity: 0; pointer-events: none; }
+.intro.gone { opacity: 0; pointer-events: none; }
 .intro[hidden] { display: none; }
 
-.intro-dentro {
+.intro-inner {
   max-width: 34rem;
   text-align: center;
 }
 
-.intro-titolo {
+.intro-title {
   margin: 0 0 24px;
   font-size: clamp(34px, 6vw, 54px);
   font-weight: 500;
@@ -348,105 +322,92 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   letter-spacing: -0.015em;
 }
 
-.intro-testo {
+.intro-text {
   margin: 0 0 14px;
   font-size: clamp(16px, 2.2vw, 19px);
   line-height: 1.65;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
 
-.intro-vai {
+.intro-enter {
   margin-top: 26px;
   padding: 13px 30px;
-  border: 1px solid var(--inchiostro);
-  background: var(--inchiostro);
-  color: var(--carta);
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
   font: inherit;
   font-size: 16px;
   cursor: pointer;
-  transition: background var(--durata) ease, color var(--durata) ease;
+  transition: background var(--duration) ease, color var(--duration) ease;
 }
-.intro-vai:hover { background: transparent; color: var(--inchiostro); }
+.intro-enter:hover { background: transparent; color: var(--ink); }
 
-.intro-nota {
+.intro-note {
   margin: 34px auto 0;
   max-width: 30rem;
   padding-top: 18px;
-  border-top: 1px solid var(--filo);
+  border-top: 1px solid var(--hairline);
   font-size: 13px;
   line-height: 1.6;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
-.intro-nota b { font-weight: 600; color: var(--inchiostro); }
+.intro-note b { font-weight: 600; color: var(--ink); }
 
-/* --- tasto del metodo ----------------------------------------------------- */
+/* --- method --------------------------------------------------------------- */
 
-.leggi {
-  padding: 8px 15px;
-  border: 1px solid var(--filo);
-  background: var(--carta-alta);
-  color: var(--inchiostro);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-.leggi:hover { border-color: var(--inchiostro); }
-
-/* --- il metodo ------------------------------------------------------------ */
-
-.lettura {
+.method {
   width: min(44rem, calc(100vw - 32px));
   max-height: min(84vh, 54rem);
   overflow-y: auto;
   padding: 0;
-  border: 1px solid var(--filo);
-  background: var(--carta-alta);
-  color: var(--inchiostro);
+  border: 1px solid var(--hairline);
+  background: var(--paper-raised);
+  color: var(--ink);
 }
-.lettura::backdrop { background: rgb(38 36 31 / 0.45); }
+.method::backdrop { background: rgb(38 36 31 / 0.45); }
 
-.lettura-dentro {
+.method-inner {
   padding: 40px 44px 44px;
   font-size: 16px;
   line-height: 1.68;
 }
-.lettura-dentro h2 {
+.method-inner h2 {
   margin: 0 0 22px;
   font-size: 27px;
   font-weight: 500;
   line-height: 1.2;
 }
-.lettura-dentro h3 {
+.method-inner h3 {
   margin: 34px 0 12px;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
-.lettura-dentro p { margin: 0 0 15px; }
-.lettura-dentro b { font-weight: 600; }
+.method-inner p { margin: 0 0 15px; }
+.method-inner b { font-weight: 600; }
 
 .formula {
   margin: 18px 0;
   padding: 16px 18px;
-  border-left: 2px solid var(--filo);
-  background: var(--carta);
+  border-left: 2px solid var(--hairline);
+  background: var(--paper);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 13px;
   line-height: 1.7;
   white-space: pre-wrap;
 }
 
-.lettura-ascolto {
+.method-help {
   margin-top: 26px;
   padding-top: 18px;
-  border-top: 1px solid var(--filo);
+  border-top: 1px solid var(--hairline);
   font-size: 14px;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
 }
 
-.lettura-chiudi {
+.method-close {
   position: sticky;
   top: 0;
   float: right;
@@ -455,15 +416,37 @@ body.pannello-aperto .pannello { transform: translateX(0); }
   margin: 6px 6px 0 0;
   border: 0;
   background: transparent;
-  color: var(--inchiostro-tenue);
+  color: var(--ink-soft);
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
 }
-.lettura-chiudi:hover { color: var(--inchiostro); }
+.method-close:hover { color: var(--ink); }
+
+/* --- narrow screens: the panel becomes a bottom sheet --------------------- */
 
 @media (max-width: 720px) {
-  .lettura-dentro { padding: 28px 22px 32px; }
-  .angolo { left: 12px; bottom: 12px; }
-  body.pannello-aperto .angolo { display: none; }
+  .panel {
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    max-height: 72%;
+    padding: 20px 20px 16px;
+    border-left: 0;
+    border-top: 1px solid var(--hairline);
+    transform: translateY(100%);
+  }
+  body.panel-open .panel { transform: translateY(0); }
+  /* On a phone the map does not shift: the sheet grows under it. */
+  body.panel-open .map-wrap { transform: none; }
+  .value-number { font-size: 62px; }
+  .corner { left: 12px; bottom: 12px; }
+  body.panel-open .corner { display: none; }
+  .legend { padding: 9px 11px; }
+  .method-inner { padding: 28px 22px 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
 }

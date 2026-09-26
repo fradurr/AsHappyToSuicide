@@ -1,36 +1,37 @@
-# Indice di felicità corretto per i suicidi
+# The Value of Happiness
 
-Mappa mondiale che affianca al punteggio di benessere del World Happiness Report il
-tasso di mortalità per suicidio dell'OMS, e mostra di quante posizioni si sposta un
-paese quando la seconda variabile entra nel conto.
+A world map that sets the World Happiness Report's wellbeing score against the
+WHO's suicide mortality rate, and shows how far a country moves once the second
+figure is counted in.
 
-Il brief completo è in [`BRIEF-mappa-felicita.md`](./BRIEF-mappa-felicita.md).
+The original brief is in [`BRIEF-mappa-felicita.md`](./BRIEF-mappa-felicita.md)
+(in Italian).
 
-## Stato
+## Status
 
 | | |
 |---|---|
-| `scripts/build-data.js` | fatto, con test |
-| `src/iso-lookup.js` | fatto |
-| `public/geo/countries-110m.json` | committato (Natural Earth 1:110m) |
-| mappa, zoom/pan, pannello a due livelli | fatto |
-| `public/data/countries.json` | **da generare**: servono le due fonti |
-| identità visiva | segnaposto, da rifare |
-| pagina «Metodo» | da fare |
+| `scripts/build-data.js` | done, with tests |
+| `src/iso-lookup.js` | done |
+| `public/geo/countries-110m.json` | committed (Natural Earth 1:110m) |
+| map, zoom and pan, country panel | done |
+| intro screen and method page | done |
+| `public/data/countries.json` | **to generate**: the two sources are needed |
+| visual identity | placeholder, to be redone |
 
-### Dati di esempio
+### Sample data
 
-Finché le fonti vere non sono in `data/sources/`, il sito ripiega su
-`public/data/countries.placeholder.json`: **numeri inventati**, generati da
-`npm run placeholder`, che servono solo a poter guardare la mappa funzionare.
-Quando ci sono, il sito ci mette sopra un avviso giallo a tutta larghezza.
+Until the real sources are in `data/sources/`, the site falls back to
+`public/data/countries.placeholder.json`: **invented numbers**, produced by
+`npm run placeholder`, useful only for seeing the map work. When they are in
+use, the page carries a full-width black banner saying so.
 
-**Prima di pubblicare quel file va cancellato.** È l'unica cosa nel repo che
-potrebbe far sembrare reali dei numeri che non lo sono.
+**That file must be deleted before publishing.** It is the one thing in this
+repository that could make invented numbers look real.
 
-## Vedere il sito sul proprio computer
+## Seeing the site on your computer
 
-Serve [Node.js](https://nodejs.org) 22 o superiore. Una volta sola:
+You need [Node.js](https://nodejs.org) 22 or newer. Once:
 
 ```
 git clone https://github.com/fradurr/AsHappyToSuicide.git
@@ -39,109 +40,111 @@ git checkout claude/happiness-suicide-index-map-bkbh8x
 npm install
 ```
 
-Poi, ogni volta:
+Then, any time:
 
 ```
 npm run dev
 ```
 
-e si apre <http://localhost:5173>. Il server resta in ascolto: salvando un file
-la pagina si aggiorna da sola. Si ferma con Ctrl+C.
+and open <http://localhost:5173>. The server keeps watching: save a file and the
+page updates itself. Ctrl+C stops it.
 
-Per vedere il sito esattamente come sarà una volta pubblicato — file compressi,
-nessun aiuto dello sviluppo — si usa invece:
+To see the site exactly as it will be once published — minified, no development
+helpers — use instead:
 
 ```
 npm run build && npm run preview
 ```
 
-## Pubblicarlo
+## Publishing it
 
-C'è un workflow che pubblica su GitHub Pages a ogni push. Perché funzioni serve
-un passaggio a mano, una volta sola:
+A workflow publishes to GitHub Pages on every push. It needs one manual step,
+once:
 
-> repository su GitHub → **Settings** → **Pages** → *Build and deployment* →
+> repository on GitHub → **Settings** → **Pages** → *Build and deployment* →
 > **Source: GitHub Actions**
 
-Da quel momento ogni push fa girare i test, costruisce il sito e lo pubblica su
-`https://fradurr.github.io/AsHappyToSuicide/`. L'avanzamento si vede nella
-scheda **Actions**; da lì si può anche lanciare la pubblicazione a mano, senza
-fare un push, con *Run workflow*.
+From then on every push runs the tests, builds the site and publishes it at
+`https://fradurr.github.io/AsHappyToSuicide/`. Progress shows in the **Actions**
+tab, and from there you can also publish by hand with *Run workflow*.
 
-Il `base` del sito viene impostato dal workflow sul nome del repository. Senza,
-il sito cercherebbe i propri file nella radice del dominio e resterebbe bianco.
+The site's `base` is set by the workflow from the repository name. Without it
+the site would look for its own files at the root of the domain and come up
+blank.
 
-**Prima di pubblicare davvero**, vedi la nota sui dati di esempio qui sotto: un
-sito pubblico che mostra numeri inventati sui suicidi è un danno, anche con la
-fascia di avviso.
+**Before publishing for real**, see the note on sample data above: a public site
+showing invented suicide figures does harm, banner or no banner.
 
-## Comandi
+## Commands
 
 ```
 npm install
-npm run build:data          # unisce le fonti e scrive public/data/countries.json
-npm test                    # 32 test sul join, sui percentili e sui fallimenti
-npm run dev                 # server di sviluppo Vite
-npm run build               # build statica del sito
-npm run placeholder         # dati FINTI, solo per vedere la mappa girare
-npm run templates           # due tabelle vuote da compilare a mano
+npm run build:data          # joins the sources and writes public/data/countries.json
+npm test                    # 31 tests on the join, the percentiles and the failures
+npm run dev                 # Vite development server
+npm run build               # static build of the site
+npm run preview             # serve the build locally
+npm run templates           # two empty tables to fill in by hand
+npm run placeholder         # FAKE data, only to see the map work
 ```
 
-`build:data` e `build` sono separati di proposito: le fonti cambiano una volta
-l'anno, il sito molte di piu'. Il JSON generato si committa, cosi' il deploy non ha
-bisogno di scaricare niente.
+`build:data` and `build` are deliberately separate: the sources change once a
+year, the site far more often. The generated JSON is committed, so deploying
+downloads nothing.
 
-Il dettaglio completo del join finisce in `data/build-report.json`: chi e' rimasto
-fuori, per quale motivo, e come ogni nome del WHR e' stato risolto. Va riletto a ogni
-aggiornamento delle fonti.
-
-Opzioni di `build:data`:
+Options for `build:data`:
 
 ```
-npm run build:data -- --offline        # non scarica: usa solo le copie in data/sources/
-npm run build:data -- --refresh        # riscarica le fonti anche se presenti
-npm run build:data -- --weight 0.4     # peso diverso per la componente suicidi
+npm run build:data -- --offline        # never download: use only data/sources/
+npm run build:data -- --refresh        # re-download even if the files are there
+npm run build:data -- --weight 0.4     # a different weight for the suicide part
 ```
 
-## Le fonti
+The full detail of the join lands in `data/build-report.json`: who was left out,
+why, and how every source name was resolved. Worth re-reading whenever the
+sources are updated.
 
-Le due fonti non sono committate. Due strade, entrambe descritte in
+## The sources
+
+Neither source is committed. Two routes, both described in
 [`data/sources/README.md`](./data/sources/README.md):
 
-1. **I file ufficiali.** `build:data` prova a scaricarli e, se non ci riesce, dice
-   esattamente cosa scaricare e dove metterlo.
-2. **Tabelle compilate a mano.** `npm run templates` genera due CSV con una riga per
-   paese, codice ISO3 e nome già dentro: resta da riempire una colonna.
+1. **The official files.** `build:data` tries to download them and, failing
+   that, says exactly what to fetch and where to put it.
+2. **Tables filled in by hand.** `npm run templates` writes two CSVs with one
+   row per country, ISO3 code and name already in place: only one column is
+   left to fill.
 
-La seconda strada non è solo più comoda: il codice ISO3 esplicito elimina il problema
-della corrispondenza dei nomi, che è il modo più probabile di rompere il join.
+The second route is not merely more convenient: an explicit ISO3 code removes
+the name-matching problem, which is the most likely way to break the join.
 
-In entrambi i casi una cella vuota significa "paese senza dato" e resta grigio, mentre
-una cella piena ma illeggibile ferma il build indicando la riga.
+Either way an empty cell means "no figure for this country" and it stays blank,
+while a filled but unreadable cell stops the build and names the row.
 
-## La formula
+## The formula
 
-Entrambe le variabili diventano percentili dentro il campione dei paesi che hanno
-*entrambi* i dati:
+Both variables become percentiles within the sample of countries that have
+*both* figures:
 
 ```
-p_benessere = percentile(punteggio WHR)      // più alto è meglio
-p_suicidi   = percentile(−tasso suicidi)     // più basso è meglio
-indice      = (1 − w) × p_benessere + w × p_suicidi        w = 0.25
+p_wellbeing = percentile(WHR score)        // higher is better
+p_suicide   = percentile(−suicide rate)    // lower is better
+value       = (1 − w) × p_wellbeing + w × p_suicide        w = 0.25
 ```
 
-Con `w = 0` l'indice riproduce esattamente la classifica WHR — c'è un test che lo
-verifica, ed è il modo più diretto per controllare che la pipeline non stia inventando
-niente.
+At `w = 0` the value reproduces the World Happiness Report ranking exactly —
+there is a test for it, and it is the most direct way to check the pipeline is
+not inventing anything.
 
-Il calcolo sta nello script di build. Il frontend riceve numeri già pronti.
+The calculation lives in the build script. The front end receives finished
+numbers.
 
-## Note
+## Notes
 
-- Il join avviene su ISO 3166-1 alpha-3. Se un nome del WHR non trova un codice, il
-  build **si ferma**: un join rotto in silenzio è il modo più probabile di pubblicare
-  una mappa sbagliata.
-- I paesi senza dati restano grigi sulla mappa, non spariscono.
-- I dati sui suicidi non sono ugualmente affidabili ovunque, il peso del 25% è una
-  scelta arbitraria, e le due fonti coprono anni diversi. Vanno dichiarati nella pagina
-  "Metodo" prima della pubblicazione.
+- The join happens on ISO 3166-1 alpha-3. If a source name finds no code, the
+  build **stops**: a silently broken join is the most likely way to publish a
+  wrong map.
+- Countries with no data stay blank on the map rather than disappearing.
+- Suicide data is not equally reliable everywhere, the 25% weight is an
+  arbitrary choice, and the two sources cover different years. All three are
+  stated on the method page.

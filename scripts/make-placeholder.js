@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * make-placeholder.js — genera dati FINTI per poter guardare la mappa.
+ * make-placeholder.js — generates FAKE data so the map can be looked at.
  *
- * Serve solo finche' le due fonti vere non sono in data/sources/. I numeri sono
- * inventati da un generatore deterministico: non hanno alcun rapporto con il
- * benessere o con la mortalita' reale di nessun paese.
+ * Only useful until the two real sources are in data/sources/. The numbers come
+ * from a deterministic generator: they bear no relation to the wellbeing or the
+ * mortality of any country.
  *
- * Per questo:
- *   - il file si chiama countries.placeholder.json, mai countries.json;
- *   - meta.placeholder e' true, e il frontend ci mette sopra un avviso fisso.
+ * Hence:
+ *   - the file is called countries.placeholder.json, never countries.json;
+ *   - meta.placeholder is true, and the front end puts a standing banner on it.
  *
- * Il file va sostituito da `npm run build:data` appena ci sono le fonti vere.
+ * Replace it with `npm run build:data` as soon as the real sources exist.
  */
 
 import fs from 'node:fs';
@@ -22,14 +22,13 @@ import countries from 'i18n-iso-countries';
 import { readGeometryIso3, percentileRanks, competitionRanks } from './build-data.js';
 
 const require = createRequire(import.meta.url);
-countries.registerLocale(require('i18n-iso-countries/langs/it.json'));
 countries.registerLocale(require('i18n-iso-countries/langs/en.json'));
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = path.join(ROOT, 'public', 'data');
 const WEIGHT = 0.25;
 
-/** PRNG deterministico: lo stesso ISO3 da sempre lo stesso numero finto. */
+/** Deterministic PRNG: the same ISO3 always yields the same fake number. */
 function seeded(str) {
   let h = 2166136261;
   for (let i = 0; i < str.length; i += 1) {
@@ -48,7 +47,7 @@ function seeded(str) {
 const geo = readGeometryIso3();
 const iso3s = [...geo.drawable].sort();
 
-// Lascio scoperto circa un paese su sette, cosi' i grigi si vedono davvero.
+// About one country in seven is left uncovered, so the empty state shows.
 const rows = [];
 for (const iso3 of iso3s) {
   const rand = seeded(iso3);
@@ -58,8 +57,8 @@ for (const iso3 of iso3s) {
   if (missingWhr || missingSuicide) continue;
   rows.push({
     iso3,
-    whr: 2.5 + rand() * 5.5, // 2.5 - 8.0, la scala Cantril reale
-    suicide: 1.5 + rand() * 26, // 1.5 - 27.5 per 100.000
+    whr: 2.5 + rand() * 5.5, // 2.5 - 8.0, the real Cantril range
+    suicide: 1.5 + rand() * 26, // 1.5 - 27.5 per 100,000
   });
 }
 
@@ -80,7 +79,7 @@ const round = (x, d) => Number(x.toFixed(d));
 const out = {
   meta: {
     placeholder: true,
-    avviso: 'DATI INVENTATI. Nessun rapporto con benessere o mortalita reali.',
+    warning: 'INVENTED DATA. No relation to real wellbeing or mortality.',
     weight: WEIGHT,
     countriesWithData: rows.length,
     generated: new Date().toISOString().slice(0, 10),
@@ -89,8 +88,7 @@ const out = {
 };
 for (const r of [...rows].sort((a, b) => a.rank - b.rank)) {
   out.countries[r.iso3] = {
-    name: countries.getName(r.iso3, 'it') ?? r.iso3,
-    nameEn: countries.getName(r.iso3, 'en') ?? r.iso3,
+    name: countries.getName(r.iso3, 'en') ?? r.iso3,
     index: round(r.index, 1),
     whr: round(r.whr, 2),
     suicide: round(r.suicide, 1),
@@ -102,11 +100,11 @@ for (const r of [...rows].sort((a, b) => a.rank - b.rank)) {
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 fs.writeFileSync(path.join(OUT_DIR, 'countries.placeholder.json'), `${JSON.stringify(out, null, 2)}\n`);
-// Questo invece e' un dato vero: deriva solo dalle geometrie e dai codici ISO.
+// This one is real, though: it derives only from the geometry and ISO codes.
 fs.writeFileSync(
   path.join(OUT_DIR, 'geo-iso.json'),
   `${JSON.stringify({ byId: geo.byId, byName: geo.byName }, null, 2)}\n`,
 );
 
-console.log(`placeholder: ${rows.length} paesi con dati finti, ${iso3s.length - rows.length} lasciati grigi`);
-console.log('geo-iso.json: ' + Object.keys(geo.byId).length + ' per id + ' + Object.keys(geo.byName).length + ' per nome');
+console.log(`placeholder: ${rows.length} countries with fake data, ${iso3s.length - rows.length} left blank`);
+console.log(`geo-iso.json: ${Object.keys(geo.byId).length} by id + ${Object.keys(geo.byName).length} by name`);

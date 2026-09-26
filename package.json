@@ -12,7 +12,7 @@
     "placeholder": "node scripts/make-placeholder.js",
     "templates": "node scripts/make-templates.js",
     "misura-toni": "node scripts/misura-toni.mjs",
-    "prebuild": "node scripts/controlla-dati.js"
+    "prebuild": "node scripts/check-data.js"
   },
   "repository": {
     "type": "git",

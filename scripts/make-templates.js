@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * make-templates.js — scrive due tabelle vuote da compilare a mano.
+ * make-templates.js — writes two empty tables to fill in by hand.
  *
- * Ogni riga porta gia' il codice ISO3 e il nome del paese: chi compila deve
- * solo riempire l'ultima colonna. Cosi' il join non dipende piu' dalla grafia
- * dei nomi, che e' l'unica cosa che oggi puo' far fallire il build.
+ * Every row already carries the ISO3 code and the country name, so whoever
+ * fills them in only has to complete the last column. That way the join no
+ * longer depends on how a source spells country names, which is the one thing
+ * most likely to break it.
  *
- * Le righe sono tutti i paesi che la mappa sa disegnare. Lasciare vuota una
- * cella e' legittimo: quel paese resta grigio.
+ * The rows are every country the map can draw. Leaving a cell empty is
+ * legitimate: that country simply stays blank.
  */
 
 import fs from 'node:fs';
@@ -19,7 +20,6 @@ import countries from 'i18n-iso-countries';
 import { readGeometryIso3 } from './build-data.js';
 
 const require = createRequire(import.meta.url);
-countries.registerLocale(require('i18n-iso-countries/langs/it.json'));
 countries.registerLocale(require('i18n-iso-countries/langs/en.json'));
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -27,40 +27,36 @@ const OUT_DIR = path.join(ROOT, 'data', 'templates');
 
 const geo = readGeometryIso3();
 
-// L'Antartide e' esclusa dalla mappa, quindi non ha senso chiederne il dato.
-const ESCLUSI = new Set(['ATA']);
+// Antarctica is left off the map, so asking for its figures makes no sense.
+const EXCLUDED = new Set(['ATA']);
 
-const righe = [...geo.drawable]
-  .filter((iso3) => !ESCLUSI.has(iso3))
-  .map((iso3) => ({
-    iso3,
-    it: countries.getName(iso3, 'it') ?? '',
-    en: countries.getName(iso3, 'en') ?? '',
-  }))
-  .sort((a, b) => (a.it || a.iso3).localeCompare(b.it || b.iso3, 'it'));
+const rows = [...geo.drawable]
+  .filter((iso3) => !EXCLUDED.has(iso3))
+  .map((iso3) => ({ iso3, name: countries.getName(iso3, 'en') ?? '' }))
+  .sort((a, b) => (a.name || a.iso3).localeCompare(b.name || b.iso3, 'en'));
 
-/** Un campo che contiene virgole o virgolette va quotato, o rompe il CSV. */
+/** A field holding commas or quotes has to be quoted, or it breaks the CSV. */
 const q = (v) => {
   const s = String(v ?? '');
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
-function scrivi(nomeFile, intestazioneValore, note) {
-  const lines = [`iso3,paese,paese_en,${intestazioneValore}`];
-  for (const r of righe) lines.push([q(r.iso3), q(r.it), q(r.en), ''].join(','));
+function write(fileName, valueHeader, note) {
+  const lines = [`iso3,country,${valueHeader}`];
+  for (const r of rows) lines.push([q(r.iso3), q(r.name), ''].join(','));
   fs.mkdirSync(OUT_DIR, { recursive: true });
-  fs.writeFileSync(path.join(OUT_DIR, nomeFile), `${lines.join('\n')}\n`);
-  console.log(`  ${path.join('data/templates', nomeFile)}  — ${righe.length} righe — ${note}`);
+  fs.writeFileSync(path.join(OUT_DIR, fileName), `${lines.join('\n')}\n`);
+  console.log(`  ${path.join('data/templates', fileName)}  — ${rows.length} rows — ${note}`);
 }
 
-console.log('\nTabelle da compilare:');
-scrivi('benessere.csv', 'benessere', 'punteggio Cantril, scala 0-10');
-scrivi('suicidi.csv', 'tasso', 'morti per 100.000, standardizzato per eta');
+console.log('\nTables to fill in:');
+write('wellbeing.csv', 'wellbeing', 'Cantril ladder score, 0–10');
+write('suicide.csv', 'rate', 'deaths per 100,000, age-standardised');
 console.log(`
-Compila l'ultima colonna e salva i due file in data/sources/ con questi nomi:
-  data/sources/whr-figure-2.1.xlsx   (oppure .csv)
-  data/sources/who-suicide-rate.csv
+Fill in the last column and save both files in data/sources/ under these names:
+  data/sources/wellbeing.csv
+  data/sources/suicide.csv
 
-Le celle lasciate vuote sono paesi senza dato: restano grigi sulla mappa.
-Poi: npm run build:data -- --offline
+Cells left empty are countries with no figure: they stay blank on the map.
+Then run: npm run build:data -- --offline
 `);

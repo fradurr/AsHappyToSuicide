@@ -1,169 +1,175 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Indice di felicità corretto per i suicidi</title>
+    <title>The Value of Happiness</title>
+    <meta
+      name="description"
+      content="A world map of subjective wellbeing corrected for suicide mortality, with the calculation shown in full."
+    />
     <link rel="stylesheet" href="/src/index.css" />
   </head>
   <body>
-    <!-- Prima schermata: dice di cosa si parla, poi si toglie di mezzo. -->
-    <section class="intro" id="intro" aria-labelledby="intro-titolo">
-      <div class="intro-dentro">
-        <h1 class="intro-titolo" id="intro-titolo">Il valore della felicità</h1>
-        <p class="intro-testo">
-          Questa mappa mostra il valore della felicità di ogni nazione.
+    <!-- First screen: says what this is, then gets out of the way. -->
+    <section class="intro" id="intro" aria-labelledby="intro-title">
+      <div class="intro-inner">
+        <h1 class="intro-title" id="intro-title">The Value of Happiness</h1>
+        <p class="intro-text">This map shows the value of happiness of every nation.</p>
+        <p class="intro-text">
+          It is the first where the suicide rate is counted into wellbeing,
+          instead of being left out of it.
         </p>
-        <p class="intro-testo">
-          È la prima in cui il tasso di suicidi entra nel conto del benessere,
-          invece di restarne fuori.
-        </p>
-        <button type="button" class="intro-vai" id="vai-alla-mappa">Vai alla mappa</button>
-        <p class="intro-nota">
-          I dati sui suicidi riguardano morti reali. Se stai attraversando un momento
-          difficile: Telefono Amico <b>02 2327 2327</b>, numero gratuito <b>800 86 00 22</b>.
+        <button type="button" class="intro-enter" id="enter">Go to the map</button>
+        <p class="intro-note">
+          The figures on this map are real deaths. If you are going through a hard
+          time, help is available. In the UK: Samaritans <b>116 123</b>. In Italy:
+          Telefono Amico <b>02 2327 2327</b>. Elsewhere:
+          <a href="https://findahelpline.com" rel="noopener">findahelpline.com</a>.
         </p>
       </div>
     </section>
 
-    <div id="avviso" class="avviso" hidden></div>
+    <div id="notice" class="notice" hidden></div>
 
-    <div class="scena">
-      <div class="mappa-wrap" id="mappa-wrap">
-        <svg id="mappa" role="img" aria-label="Mappa mondiale dell'indice di felicità corretto"></svg>
+    <div class="stage">
+      <div class="map-wrap" id="map-wrap">
+        <svg id="map" role="img" aria-label="World map of suicide mortality"></svg>
       </div>
 
-      <div class="angolo">
-      <figure class="legenda" id="legenda">
-        <figcaption class="legenda-titolo">Mortalità per suicidio</figcaption>
-        <svg class="legenda-scala" id="legenda-scala" aria-hidden="true"></svg>
-        <div class="legenda-estremi"><span>0</span><span>30</span></div>
-        <div class="legenda-unita">per 100.000 abitanti</div>
-        <div class="legenda-vuoto"><i></i><span>dati non disponibili</span></div>
-      </figure>
+      <div class="corner">
+        <figure class="legend" id="legend">
+          <figcaption class="legend-title">Suicide mortality</figcaption>
+          <svg class="legend-scale" id="legend-scale" aria-hidden="true"></svg>
+          <div class="legend-ends"><span>0</span><span>30</span></div>
+          <div class="legend-unit">per 100,000 people</div>
+          <div class="legend-empty"><i></i><span>no data available</span></div>
+        </figure>
 
-      <button type="button" class="leggi" id="leggi">Leggi il metodo</button>
+        <button type="button" class="read-more" id="read-more">Read more</button>
       </div>
 
-      <dialog class="lettura" id="lettura" aria-labelledby="lettura-titolo">
-        <button type="button" class="lettura-chiudi" id="lettura-chiudi" aria-label="Chiudi">×</button>
-        <article class="lettura-dentro">
-          <h2 id="lettura-titolo">Di cosa parla questa mappa</h2>
+      <dialog class="method" id="method" aria-labelledby="method-title">
+        <button type="button" class="method-close" id="method-close" aria-label="Close">×</button>
+        <article class="method-inner">
+          <h2 id="method-title">What this map is about</h2>
 
           <p>
-            Il World Happiness Report classifica i paesi in base a una sola domanda,
-            posta a un campione di abitanti: «da 0 a 10, dove collochi la tua vita
-            oggi?». È una misura utile, ma non tiene conto di chi quella vita ha
-            scelto di interromperla.
+            The World Happiness Report ranks countries on a single question, put
+            to a sample of their residents: “on a scale from 0 to 10, where does
+            your life stand today?”. It is a useful measure, but it cannot
+            account for the people who chose to end that life.
           </p>
           <p>
-            Ne risulta una tensione nota come <i>happiness-suicide paradox</i>: alcuni
-            paesi in cima alla classifica del benessere hanno tassi di suicidio fra i
-            più alti al mondo. Questa mappa rende visibile quella tensione invece di
-            lasciarla fuori dal quadro.
+            The result is a tension known as the <i>happiness–suicide paradox</i>:
+            several countries at the top of the wellbeing ranking also carry some
+            of the highest suicide rates in the world. This map puts that tension
+            in view rather than leaving it outside the frame.
           </p>
           <p>
-            Non stiamo dicendo che la classifica del World Happiness Report sia
-            sbagliata. Stiamo offrendo una seconda lettura, con il calcolo in chiaro
-            e verificabile.
+            None of this says the World Happiness Report is wrong. It offers a
+            second reading, with the calculation shown in full so anyone can check
+            it.
           </p>
 
-          <h3>Come si calcola</h3>
+          <h3>How it is calculated</h3>
           <p>
-            Le due grandezze non sono confrontabili così come sono: una va da 0 a 10,
-            l'altra conta morti per 100.000 abitanti. Vengono quindi convertite
-            entrambe in percentile, all'interno del gruppo di paesi che hanno
-            entrambi i dati — 100 è il migliore del gruppo, 0 il peggiore.
+            The two quantities cannot be compared as they are: one runs from 0 to
+            10, the other counts deaths per 100,000 people. Both are therefore
+            turned into percentiles within the group of countries that have both
+            figures — 100 is the best in the group, 0 the worst.
           </p>
-          <pre class="formula">p_benessere = percentile(punteggio 0–10)
-p_suicidi   = percentile(−tasso per 100.000)
+          <pre class="formula">p_wellbeing = percentile(score 0–10)
+p_suicide   = percentile(−rate per 100,000)
 
-valore = (1 − w) × p_benessere + w × p_suicidi</pre>
+value = (1 − w) × p_wellbeing + w × p_suicide</pre>
           <p>
-            Con <b>w = 0,25</b>: la mortalità per suicidio pesa per un quarto. Con
-            w = 0 si riottiene esattamente la classifica del World Happiness Report.
+            With <b>w = 0.25</b>, suicide mortality carries a quarter of the
+            weight. At w = 0 the result is exactly the World Happiness Report
+            ranking.
           </p>
           <p>
-            Il percentile e non il minimo-massimo, perché quest'ultimo viene schiacciato
-            dai casi estremi: un solo paese con un tasso molto sopra la media
-            comprimerebbe tutti gli altri in una fascia strettissima. E non una divisione
-            fra le due grandezze, perché un paese con pochissimi suicidi schizzerebbe in
-            cima per pura algebra, indipendentemente da come ci si sente a viverci.
-          </p>
-
-          <h3>Tre limiti, dichiarati</h3>
-          <p>
-            <b>I dati sui suicidi non sono ugualmente affidabili ovunque.</b> Stigma
-            religioso o legale, pratiche dei medici legali e qualità dei registri di
-            morte variano molto da paese a paese. Le stime dell'Organizzazione
-            Mondiale della Sanità correggono per la sotto-notifica, ma restano stime.
-          </p>
-          <p>
-            <b>Il peso del 25% è una scelta, non un risultato.</b> Nessuna teoria
-            stabilisce quanto debba pesare la mortalità per suicidio dentro una misura
-            di benessere. È un valore arbitrario, e va difeso come tale.
-          </p>
-          <p>
-            <b>Le due fonti coprono anni diversi.</b> Il punteggio di benessere è una
-            media dei tre anni più recenti disponibili; le stime di mortalità sono
-            riferite a un anno precedente.
+            Percentiles rather than a min–max scale, because min–max gets crushed
+            by outliers: a single country far above the mean would squeeze every
+            other into a narrow band. And not a ratio of the two, because a
+            country with very few suicides would shoot to the top by arithmetic
+            alone, regardless of how it feels to live there.
           </p>
 
-          <h3>Le fonti</h3>
+          <h3>Three limits, stated</h3>
           <p>
-            Benessere: World Happiness Report, dati della Figura 2.1.<br />
-            Mortalità: Organizzazione Mondiale della Sanità, Global Health Estimates,
-            tassi standardizzati per età.
+            <b>Suicide data is not equally reliable everywhere.</b> Religious and
+            legal stigma, coroner practice and the quality of death registers vary
+            a great deal between countries. The World Health Organization
+            estimates correct for under-reporting, but they remain estimates.
           </p>
           <p>
-            Sono usate le stime GHE e non i dati grezzi del Mortality Database, perché
-            le prime sono già corrette per sotto-notifica e cause di morte mal
-            definite, e quindi confrontabili fra paesi.
+            <b>The 25% weight is a choice, not a finding.</b> No theory sets how
+            much suicide mortality should weigh inside a measure of wellbeing. The
+            figure is arbitrary, and should be defended as such.
+          </p>
+          <p>
+            <b>The two sources cover different years.</b> The wellbeing score is an
+            average of the three most recent years available; the mortality
+            estimates refer to an earlier year.
           </p>
 
-          <h3>Una nota sul tono</h3>
+          <h3>Sources</h3>
           <p>
-            I numeri di questa mappa sono morti. Non sono un punteggio, non sono una
-            prestazione, e nessun paese qui «vince» o «perde». Le differenze fra due
-            indicatori sono ciò che la mappa mostra — nient'altro.
+            Wellbeing: World Happiness Report, data behind Figure 2.1.<br />
+            Mortality: World Health Organization, Global Health Estimates,
+            age-standardised rates.
           </p>
-          <p class="lettura-ascolto">
-            Telefono Amico <b>02 2327 2327</b> · numero gratuito <b>800 86 00 22</b>
+          <p>
+            The GHE estimates are used rather than the raw Mortality Database,
+            because the former already correct for under-reporting and
+            ill-defined causes of death, and so compare across countries.
+          </p>
+
+          <h3>A note on tone</h3>
+          <p>
+            The numbers on this map are deaths. They are not a score, not a
+            performance, and no country here wins or loses. What the map shows is
+            the difference between two indicators — nothing more.
+          </p>
+          <p class="method-help">
+            Samaritans (UK) <b>116 123</b> · Telefono Amico (IT) <b>02 2327 2327</b> ·
+            <a href="https://findahelpline.com" rel="noopener">findahelpline.com</a>
           </p>
         </article>
       </dialog>
 
-      <aside id="pannello" class="pannello" aria-live="polite">
-        <button type="button" id="chiudi" class="chiudi" aria-label="Chiudi il pannello">×</button>
+      <aside id="panel" class="panel" aria-live="polite">
+        <button type="button" class="close" id="close-panel" aria-label="Close the panel">×</button>
 
-        <p class="pannello-paese" id="paese"></p>
+        <p class="panel-country" id="country"></p>
 
-        <div class="indice-blocco" id="indice-blocco">
-          <span class="indice-valore" id="indice"></span>
-          <span class="indice-etichetta">valore della felicità</span>
+        <div class="value-block" id="value-block">
+          <span class="value-number" id="value"></span>
+          <span class="value-label">happiness value</span>
         </div>
 
-        <div id="dettagli" class="dettagli">
-          <dl class="componenti">
+        <div id="details" class="details">
+          <dl class="components">
             <div>
-              <dt>Benessere percepito <span class="unita">(0–10)</span></dt>
-              <dd id="whr"></dd>
+              <dt>Wellbeing score <span class="unit">(0–10)</span></dt>
+              <dd id="wellbeing"></dd>
             </div>
             <div>
-              <dt>Mortalità per suicidio <span class="unita">(per 100.000)</span></dt>
-              <dd id="suicidi"></dd>
+              <dt>Suicide mortality <span class="unit">(per 100,000)</span></dt>
+              <dd id="suicide"></dd>
             </div>
           </dl>
-          <p class="posizioni" id="posizioni"></p>
+          <p class="ranks" id="ranks"></p>
         </div>
 
-        <p class="senza-dati" id="senza-dati" hidden></p>
+        <p class="no-data" id="no-data" hidden></p>
       </aside>
     </div>
 
     <footer class="footer">
-      <span id="footer-testo">Segnaposto: l'identità visiva è ancora da definire.</span>
-      <span class="ascolto">Telefono Amico 02 2327 2327 · numero gratuito 800 86 00 22</span>
+      <span id="footer-text">Placeholder: the visual identity is still to be defined.</span>
+      <span class="help">Samaritans 116 123 · Telefono Amico 02 2327 2327</span>
     </footer>
 
     <script type="module" src="/src/main.js"></script>

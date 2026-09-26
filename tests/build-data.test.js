@@ -12,50 +12,64 @@ import { writeWhrXlsx, writeSuicideCsv } from './make-fixtures.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = path.join(ROOT, 'scripts', 'build-data.js');
 
-// --- statistica -------------------------------------------------------------
+// --- statistics -------------------------------------------------------------
 
-test('percentileRanks: il minimo vale 0 e il massimo 100', () => {
+test('percentileRanks: the minimum is 0 and the maximum is 100', () => {
   assert.deepEqual(percentileRanks([5, 1, 3]), [100, 0, 50]);
 });
 
-test('percentileRanks: i pari merito ricevono lo stesso percentile', () => {
+test('percentileRanks: ties get the same percentile', () => {
   const p = percentileRanks([2, 2, 1, 4]);
   assert.equal(p[0], p[1]);
   assert.equal(p[2], 0);
   assert.equal(p[3], 100);
 });
 
-test('percentileRanks: casi degeneri', () => {
+test('percentileRanks: degenerate cases', () => {
   assert.deepEqual(percentileRanks([]), []);
   assert.deepEqual(percentileRanks([7]), [50]);
-  // Tutti uguali: nessuno e' migliore, tutti a meta' scala.
+  // All equal: nobody is better, everyone sits mid-scale.
   assert.deepEqual(percentileRanks([3, 3, 3]), [50, 50, 50]);
 });
 
-test('percentileRanks: negare i valori inverte la scala', () => {
+test('percentileRanks: negating the values flips the scale', () => {
   const rates = [4, 12, 28];
   assert.deepEqual(percentileRanks(rates.map((r) => -r)), [100, 50, 0]);
 });
 
-test('competitionRanks: 1 al valore piu alto, pari merito condiviso', () => {
+test('competitionRanks: 1 goes to the highest value, ties share a rank', () => {
   assert.deepEqual(competitionRanks([10, 30, 20]), [3, 1, 2]);
   assert.deepEqual(competitionRanks([5, 5, 1]), [1, 1, 3]);
 });
 
+test('a tie does not depend on floating-point noise', () => {
+  // Two values equal on paper can differ in the last bit.
+  const a = 70.83333333333333;
+  const b = a + 1e-13;
+  assert.notEqual(a, b, 'the case only means something if the floats differ');
+  assert.deepEqual(competitionRanks([100, a, b, 10]), [1, 2, 2, 4]);
+  assert.deepEqual(percentileRanks([10, a, b, 100]), [0, 50, 50, 100]);
+});
+
+test('a real difference is not swallowed by the tolerance', () => {
+  // 0.05 of a point is visible in the published JSON: two ranks, not one.
+  assert.deepEqual(competitionRanks([70.9, 70.85]), [1, 2]);
+});
+
 // --- CSV --------------------------------------------------------------------
 
-test('parseCsv: virgole e virgolette dentro i campi', () => {
+test('parseCsv: commas and quotes inside fields', () => {
   const rows = parseCsv('a,"b,c",d\n1,"he said ""hi""",3\n');
   assert.deepEqual(rows[0], ['a', 'b,c', 'd']);
   assert.deepEqual(rows[1], ['1', 'he said "hi"', '3']);
 });
 
-test('parseCsv: a capo dentro un campo quotato e CRLF', () => {
+test('parseCsv: a newline inside a quoted field, and CRLF', () => {
   const rows = parseCsv('a,b\r\n"x\ny",2\r\n');
   assert.deepEqual(rows[1], ['x\ny', '2']);
 });
 
-// --- pipeline completa ------------------------------------------------------
+// --- the whole pipeline -----------------------------------------------------
 
 function runBuild(dir, extraArgs = []) {
   return execFileSync(process.execPath, [SCRIPT, '--offline', ...extraArgs], {
@@ -85,7 +99,7 @@ const WHR_SAMPLE = [
   { name: 'Turkiye', whr: 4.72 },
   { name: 'Congo (Kinshasa)', whr: 4.02 },
   { name: 'Congo (Brazzaville)', whr: 5.22 },
-  { name: 'North Cyprus', whr: 5.98 }, // senza codice ISO: escluso di proposito
+  { name: 'North Cyprus', whr: 5.98 }, // no ISO code: excluded on purpose
 ];
 
 const SUICIDE_SAMPLE = [
@@ -96,54 +110,54 @@ const SUICIDE_SAMPLE = [
   { entity: 'Turkiye', code: 'TUR', rate: 2.6 },
   { entity: 'Democratic Republic of Congo', code: 'COD', rate: 6.4 },
   { entity: 'Congo', code: 'COG', rate: 5.1 },
-  { entity: 'Brazil', code: 'BRA', rate: 6.9 }, // solo OMS: non e' nel WHR finto
+  { entity: 'Brazil', code: 'BRA', rate: 6.9 }, // WHO only: not in the fake WHR
 ];
 
-test('pipeline: unisce le fonti e scrive il JSON atteso', async () => {
+test('pipeline: joins the sources and writes the expected JSON', async () => {
   const dir = await scenario(WHR_SAMPLE, SUICIDE_SAMPLE);
   const stdout = runBuild(dir);
 
   const out = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'countries.json'), 'utf8'));
-  const isos = Object.keys(out.countries).sort();
-  assert.deepEqual(isos, ['COD', 'COG', 'DNK', 'FIN', 'ITA', 'KOR', 'TUR']);
+  assert.deepEqual(Object.keys(out.countries).sort(), [
+    'COD', 'COG', 'DNK', 'FIN', 'ITA', 'KOR', 'TUR',
+  ]);
 
   assert.equal(out.meta.countriesWithData, 7);
   assert.equal(out.meta.weight, 0.25);
   assert.equal(out.meta.suicideYear, 2021);
 
-  // I due Congo non vanno invertiti: e' l'errore piu' facile da commettere.
+  // The two Congos must not be swapped: it is the easiest mistake to make.
   assert.equal(out.countries.COD.whr, 4.02);
   assert.equal(out.countries.COG.whr, 5.22);
   assert.equal(out.countries.COD.suicide, 6.4);
   assert.equal(out.countries.COG.suicide, 5.1);
 
-  // Nomi in italiano dal codice ISO, non dalla grafia WHR.
-  assert.equal(out.countries.ITA.name, 'Italia');
-  assert.equal(out.countries.TUR.name, 'Turchia');
+  // Names come from the ISO code, not from how the WHR spells them.
+  assert.equal(out.countries.ITA.name, 'Italy');
+  assert.equal(out.countries.TUR.name, 'Türkiye');
 
-  // Ogni paese ha tutto quello che serve ai due livelli del pannello.
   for (const c of Object.values(out.countries)) {
     for (const k of ['name', 'index', 'whr', 'suicide', 'rank', 'rankWhr', 'rankDelta']) {
-      assert.ok(c[k] !== undefined, `manca ${k}`);
+      assert.ok(c[k] !== undefined, `${k} is missing`);
     }
     assert.ok(c.index >= 0 && c.index <= 100);
     assert.equal(c.rankDelta, c.rankWhr - c.rank);
   }
 
-  // La Corea del Sud, col tasso piu' alto del campione, perde posizioni.
+  // South Korea, the highest rate in the sample, loses places.
   assert.ok(out.countries.KOR.rank > out.countries.KOR.rankWhr);
   assert.equal(out.countries.KOR.rankDelta, -1);
-  // La Turchia, col tasso piu' basso, ne guadagna.
+  // Türkiye, the lowest rate, gains them.
   assert.ok(out.countries.TUR.rank < out.countries.TUR.rankWhr);
 
-  // Indici matematicamente uguali devono condividere il rango: Danimarca e
-  // Italia valgono entrambe 70.83 e differiscono solo nell'ultimo bit.
+  // Mathematically equal values must share a rank: Denmark and Italy both come
+  // to 70.83 and differ only in the last bit.
   assert.equal(out.countries.DNK.index, out.countries.ITA.index);
   assert.equal(out.countries.DNK.rank, out.countries.ITA.rank);
-  // Il pari merito consuma la posizione successiva.
+  // A shared rank consumes the next position.
   assert.equal(out.countries.COG.rank, out.countries.DNK.rank + 2);
 
-  assert.match(stdout, /paesi con dati completi\s+7/);
+  assert.match(stdout, /countries with complete data\s+7/);
   assert.match(stdout, /North Cyprus/);
 
   const report = JSON.parse(fs.readFileSync(path.join(dir, 'report.json'), 'utf8'));
@@ -152,59 +166,56 @@ test('pipeline: unisce le fonti e scrive il JSON atteso', async () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('pipeline: con w = 0 l indice riproduce esattamente la classifica WHR', async () => {
+test('pipeline: at w = 0 the value reproduces the WHR ranking exactly', async () => {
   const dir = await scenario(WHR_SAMPLE, SUICIDE_SAMPLE);
   runBuild(dir, ['--weight', '0']);
   const out = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'countries.json'), 'utf8'));
   for (const [iso3, c] of Object.entries(out.countries)) {
-    assert.equal(c.rank, c.rankWhr, `${iso3} si sposta con w = 0`);
+    assert.equal(c.rank, c.rankWhr, `${iso3} moves at w = 0`);
     assert.equal(c.rankDelta, 0);
   }
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('pipeline: un nome WHR non mappabile fa fallire il build', async () => {
-  const dir = await scenario(
-    [...WHR_SAMPLE, { name: 'Freedonia', whr: 5.0 }],
-    SUICIDE_SAMPLE,
-  );
+test('pipeline: an unmappable WHR name stops the build', async () => {
+  const dir = await scenario([...WHR_SAMPLE, { name: 'Freedonia', whr: 5.0 }], SUICIDE_SAMPLE);
   assert.throws(
     () => runBuild(dir),
     (err) => {
       assert.equal(err.status, 1);
       const text = String(err.stderr);
-      assert.match(text, /Join WHR -> ISO3 incompleto/);
+      assert.match(text, /WHR -> ISO3 join incomplete/);
       assert.match(text, /"Freedonia"/);
       assert.match(text, /src\/iso-lookup\.js/);
       return true;
     },
   );
-  // Nessun output scritto quando il join e' rotto.
+  // Nothing is written when the join is broken.
   assert.equal(fs.existsSync(path.join(dir, 'out', 'countries.json')), false);
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('pipeline: due nomi WHR sullo stesso ISO3 fanno fallire il build', async () => {
+test('pipeline: two WHR names on the same ISO3 stop the build', async () => {
   const dir = await scenario(
-    [...WHR_SAMPLE, { name: 'Turkey', whr: 4.7 }], // stesso paese, grafia vecchia
+    [...WHR_SAMPLE, { name: 'Turkey', whr: 4.7 }], // same country, older spelling
     SUICIDE_SAMPLE,
   );
   assert.throws(
     () => runBuild(dir),
     (err) => {
-      assert.match(String(err.stderr), /stesso ISO3/);
+      assert.match(String(err.stderr), /same ISO3/);
       return true;
     },
   );
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('pipeline: --offline non scarica e dice quale file manca', () => {
+test('pipeline: --offline does not download and names the missing file', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'whr-test-'));
   assert.throws(
     () => runBuild(dir),
     (err) => {
-      assert.match(String(err.stderr), /Manca la copia locale/);
+      assert.match(String(err.stderr), /No local copy of/);
       assert.match(String(err.stderr), /worldhappiness\.report/);
       return true;
     },
@@ -212,9 +223,9 @@ test('pipeline: --offline non scarica e dice quale file manca', () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-// --- geometrie --------------------------------------------------------------
+// --- geometry ---------------------------------------------------------------
 
-test('geo-iso.json copre le geometrie, Kosovo incluso per nome', async () => {
+test('geo-iso.json covers the geometry, Kosovo included by name', async () => {
   const dir = await scenario(WHR_SAMPLE, SUICIDE_SAMPLE);
   runBuild(dir);
   const geo = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'geo-iso.json'), 'utf8'));
@@ -224,21 +235,7 @@ test('geo-iso.json copre le geometrie, Kosovo incluso per nome', async () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('il pari merito non dipende dal rumore in virgola mobile', () => {
-  // Due indici uguali sulla carta possono differire nell'ultimo bit.
-  const a = 70.83333333333333;
-  const b = a + 1e-13;
-  assert.notEqual(a, b, 'il caso ha senso solo se i due float differiscono');
-  assert.deepEqual(competitionRanks([100, a, b, 10]), [1, 2, 2, 4]);
-  assert.deepEqual(percentileRanks([10, a, b, 100]), [0, 50, 50, 100]);
-});
-
-test('una differenza reale non viene assorbita dalla tolleranza', () => {
-  // 0.05 punti di indice sono visibili nel JSON pubblicato: restano due ranghi.
-  assert.deepEqual(competitionRanks([70.9, 70.85]), [1, 2]);
-});
-
-test('xlsx: le intestazioni vengono trovate anche sotto una riga di titolo', async () => {
+test('xlsx: the headers are found even under a title row', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'whr-test-'));
   await writeWhrXlsx(path.join(dir, 'sources', 'whr-figure-2.1.xlsx'), WHR_SAMPLE, {
     leadingRows: 2,
@@ -251,69 +248,71 @@ test('xlsx: le intestazioni vengono trovate anche sotto una riga di titolo', asy
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-// --- tabelle compilate a mano (percorso offline) ----------------------------
+// --- hand-filled tables (the offline route) ---------------------------------
 
-function scriviCsv(file, testo) {
+function writeCsv(file, text) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, testo);
+  fs.writeFileSync(file, text);
 }
 
-async function scenarioCsv(benessereCsv, suicidiCsv) {
+async function csvScenario(wellbeingCsv, suicideCsv) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'whr-test-'));
-  scriviCsv(path.join(dir, 'sources', 'whr-figure-2.1.csv'), benessereCsv);
-  scriviCsv(path.join(dir, 'sources', 'who-suicide-rate.csv'), suicidiCsv);
+  writeCsv(path.join(dir, 'sources', 'wellbeing.csv'), wellbeingCsv);
+  writeCsv(path.join(dir, 'sources', 'suicide.csv'), suicideCsv);
   return dir;
 }
 
-const BENESSERE_CSV = `iso3,paese,paese_en,benessere
-FIN,Finlandia,Finland,7.74
-DNK,Danimarca,Denmark,7.52
-ITA,Italia,Italy,6.32
-KOR,Corea del Sud,South Korea,6.04
-TUR,Turchia,Türkiye,4.72
-COD,Repubblica Democratica del Congo,DR Congo,4.02
-COG,Repubblica del Congo,Congo,5.22
-NOR,Norvegia,Norway,
+const WELLBEING_CSV = `iso3,country,wellbeing
+FIN,Finland,7.74
+DNK,Denmark,7.52
+ITA,Italy,6.32
+KOR,South Korea,6.04
+TUR,Türkiye,4.72
+COD,Democratic Republic of the Congo,4.02
+COG,Republic of the Congo,5.22
+NOR,Norway,
 `;
 
-const SUICIDI_CSV = `iso3,paese,tasso
-FIN,Finlandia,15.3
-DNK,Danimarca,9.4
-ITA,Italia,4.3
-KOR,Corea del Sud,28.6
-TUR,Turchia,2.6
-COD,Repubblica Democratica del Congo,6.4
-COG,Repubblica del Congo,5.1
-NOR,Norvegia,11.2
+const SUICIDE_CSV = `iso3,country,rate
+FIN,Finland,15.3
+DNK,Denmark,9.4
+ITA,Italy,4.3
+KOR,South Korea,28.6
+TUR,Türkiye,2.6
+COD,Democratic Republic of the Congo,6.4
+COG,Republic of the Congo,5.1
+NOR,Norway,11.2
 `;
 
-test('offline: due tabelle con ISO3 si uniscono senza passare dai nomi', async () => {
-  const dir = await scenarioCsv(BENESSERE_CSV, SUICIDI_CSV);
+test('offline: two tables with ISO3 join without going through names', async () => {
+  const dir = await csvScenario(WELLBEING_CSV, SUICIDE_CSV);
   runBuild(dir);
 
   const out = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'countries.json'), 'utf8'));
-  assert.deepEqual(Object.keys(out.countries).sort(), ['COD', 'COG', 'DNK', 'FIN', 'ITA', 'KOR', 'TUR']);
-  // La Norvegia ha il tasso ma la cella del benessere e' vuota: resta fuori.
+  assert.deepEqual(Object.keys(out.countries).sort(), [
+    'COD', 'COG', 'DNK', 'FIN', 'ITA', 'KOR', 'TUR',
+  ]);
+  // Norway has the rate but an empty wellbeing cell: it stays out.
   assert.equal(out.countries.NOR, undefined);
   assert.equal(out.countries.COD.whr, 4.02);
   assert.equal(out.countries.COG.whr, 5.22);
 
   const report = JSON.parse(fs.readFileSync(path.join(dir, 'report.json'), 'utf8'));
-  // Nessun nome e' passato dalla tabella di conversione: il codice basta.
-  assert.ok(report.join.every((j) => j.via === 'codice nella tabella'));
+  // No name went through the lookup table: the code was enough.
+  assert.ok(report.join.every((j) => j.via === 'code in the table'));
   assert.deepEqual(report.suicideOnly.map((c) => c.iso3), ['NOR']);
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('offline: una cella non numerica ferma il build e dice quale riga', async () => {
-  const rotto = BENESSERE_CSV.replace('ITA,Italia,Italy,6.32', 'ITA,Italia,Italy,sei virgola tre');
-  const dir = await scenarioCsv(rotto, SUICIDI_CSV);
+test('offline: a non-numeric cell stops the build and names the row', async () => {
+  const broken = WELLBEING_CSV.replace('ITA,Italy,6.32', 'ITA,Italy,six point three');
+  const dir = await csvScenario(broken, SUICIDE_CSV);
   assert.throws(
     () => runBuild(dir),
     (err) => {
       const t = String(err.stderr);
-      assert.match(t, /Valori non validi nella fonte benessere/);
-      assert.match(t, /riga 4/);
+      assert.match(t, /Invalid values in the wellbeing source/);
+      assert.match(t, /row 4/);
       assert.match(t, /ITA/);
       return true;
     },
@@ -321,107 +320,102 @@ test('offline: una cella non numerica ferma il build e dice quale riga', async (
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('offline: un punteggio fuori dalla scala 0-10 ferma il build', async () => {
-  const rotto = BENESSERE_CSV.replace('ITA,Italia,Italy,6.32', 'ITA,Italia,Italy,63.2');
-  const dir = await scenarioCsv(rotto, SUICIDI_CSV);
+test('offline: a score outside the 0-10 scale stops the build', async () => {
+  const broken = WELLBEING_CSV.replace('ITA,Italy,6.32', 'ITA,Italy,63.2');
+  const dir = await csvScenario(broken, SUICIDE_CSV);
   assert.throws(
     () => runBuild(dir),
     (err) => {
-      assert.match(String(err.stderr), /fuori dalla scala 0-10/);
+      assert.match(String(err.stderr), /outside the 0–10 scale/);
       return true;
     },
   );
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('offline: un tasso di suicidio implausibile ferma il build', async () => {
-  const rotto = SUICIDI_CSV.replace('ITA,Italia,4.3', 'ITA,Italia,430');
-  const dir = await scenarioCsv(BENESSERE_CSV, rotto);
+test('offline: an implausible suicide rate stops the build', async () => {
+  const broken = SUICIDE_CSV.replace('ITA,Italy,4.3', 'ITA,Italy,430');
+  const dir = await csvScenario(WELLBEING_CSV, broken);
   assert.throws(
     () => runBuild(dir),
     (err) => {
-      assert.match(String(err.stderr), /fuori da ogni intervallo plausibile/);
+      assert.match(String(err.stderr), /outside any plausible range/);
       return true;
     },
   );
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('offline: la virgola decimale italiana viene accettata', async () => {
-  const virgole = BENESSERE_CSV.replace('ITA,Italia,Italy,6.32', 'ITA,Italia,Italy,"6,32"');
-  const dir = await scenarioCsv(virgole, SUICIDI_CSV);
+test('offline: a comma decimal separator is accepted', async () => {
+  const commas = WELLBEING_CSV.replace('ITA,Italy,6.32', 'ITA,Italy,"6,32"');
+  const dir = await csvScenario(commas, SUICIDE_CSV);
   runBuild(dir);
   const out = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'countries.json'), 'utf8'));
   assert.equal(out.countries.ITA.whr, 6.32);
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('offline: un codice ISO3 malformato ferma il build', async () => {
-  const rotto = BENESSERE_CSV.replace('ITA,Italia,Italy,6.32', 'ITALIA,Italia,Italy,6.32');
-  const dir = await scenarioCsv(rotto, SUICIDI_CSV);
+test('offline: a malformed ISO3 code stops the build', async () => {
+  const broken = WELLBEING_CSV.replace('ITA,Italy,6.32', 'ITALY,Italy,6.32');
+  const dir = await csvScenario(broken, SUICIDE_CSV);
   assert.throws(
     () => runBuild(dir),
     (err) => {
       const t = String(err.stderr);
-      assert.match(t, /Join WHR -> ISO3 incompleto/);
-      assert.match(t, /codice malformato/);
+      assert.match(t, /WHR -> ISO3 join incomplete/);
+      assert.match(t, /malformed code/);
       return true;
     },
   );
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('le tabelle generate sono compilabili cosi come sono', async () => {
-  const { execFileSync } = await import('node:child_process');
+test('the generated tables are fillable as they are', async () => {
   execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'make-templates.js')], { cwd: ROOT });
-  const csv = fs.readFileSync(path.join(ROOT, 'data', 'templates', 'benessere.csv'), 'utf8');
-  const righe = parseCsv(csv);
-  assert.deepEqual(righe[0], ['iso3', 'paese', 'paese_en', 'benessere']);
-  assert.ok(righe.length > 150, 'devono esserci tutti i paesi disegnabili');
-  // Ogni riga ha un codice valido e la colonna del valore vuota.
-  for (const r of righe.slice(1)) {
+  const csv = fs.readFileSync(path.join(ROOT, 'data', 'templates', 'wellbeing.csv'), 'utf8');
+  const rows = parseCsv(csv);
+  assert.deepEqual(rows[0], ['iso3', 'country', 'wellbeing']);
+  assert.ok(rows.length > 150, 'every drawable country should be there');
+  for (const r of rows.slice(1)) {
     assert.match(r[0], /^[A-Z]{3}$/);
-    assert.equal(r[3], '');
+    assert.equal(r[2], '');
   }
-  assert.ok(righe.some((r) => r[0] === 'ITA' && r[1] === 'Italia'));
-  assert.ok(!righe.some((r) => r[0] === 'ATA'), 'Antartide esclusa dalla mappa e dalle tabelle');
+  assert.ok(rows.some((r) => r[0] === 'ITA' && r[1] === 'Italy'));
+  assert.ok(!rows.some((r) => r[0] === 'ATA'), 'Antarctica is off the map and off the tables');
 });
 
-test('offline: le tabelle generate, compilate, arrivano fino al JSON', async () => {
-  const { execFileSync: exec } = await import('node:child_process');
-  exec(process.execPath, [path.join(ROOT, 'scripts', 'make-templates.js')], { cwd: ROOT });
+test('offline: the generated tables, filled in, make it all the way to the JSON', async () => {
+  execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'make-templates.js')], { cwd: ROOT });
 
-  // Compilo i due modelli come farebbe una persona: qualche cella lasciata vuota.
-  const compila = (nome, base) => {
-    const righe = parseCsv(fs.readFileSync(path.join(ROOT, 'data', 'templates', nome), 'utf8'));
-    const out = [righe[0].join(',')];
-    righe.slice(1).forEach((r, i) => {
-      r[3] = i % 5 === 0 ? '' : String(base + (i % 17) * 0.13);
+  // Filled in the way a person would: some cells left empty.
+  const fill = (name, base) => {
+    const rows = parseCsv(fs.readFileSync(path.join(ROOT, 'data', 'templates', name), 'utf8'));
+    const out = [rows[0].join(',')];
+    rows.slice(1).forEach((r, i) => {
+      r[2] = i % 5 === 0 ? '' : String(base + (i % 17) * 0.13);
       out.push(r.map((c) => (/[",]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c)).join(','));
     });
     return `${out.join('\n')}\n`;
   };
 
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'whr-test-'));
-  scriviCsv(path.join(dir, 'sources', 'benessere.csv'), compila('benessere.csv', 4));
-  scriviCsv(path.join(dir, 'sources', 'suicidi.csv'), compila('suicidi.csv', 6));
+  writeCsv(path.join(dir, 'sources', 'wellbeing.csv'), fill('wellbeing.csv', 4));
+  writeCsv(path.join(dir, 'sources', 'suicide.csv'), fill('suicide.csv', 6));
 
   const stdout = runBuild(dir);
   const out = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'countries.json'), 'utf8'));
 
   assert.ok(out.meta.countriesWithData > 100);
-  // Senza colonna Year non si dichiara un anno: null, non zero.
+  // With no Year column there is no year to declare: null, not zero.
   assert.equal(out.meta.suicideYear, null);
 
-  // Il valore deve venire dalla colonna giusta: con due colonne di nomi
-  // (paese, paese_en) un riconoscimento ingenuo prenderebbe il nome inglese.
   for (const c of Object.values(out.countries)) {
     assert.equal(typeof c.suicide, 'number');
-    assert.ok(c.whr >= 0 && c.whr <= 10, `benessere fuori scala: ${c.whr}`);
+    assert.ok(c.whr >= 0 && c.whr <= 10, `wellbeing out of scale: ${c.whr}`);
   }
 
   const report = JSON.parse(fs.readFileSync(path.join(dir, 'report.json'), 'utf8'));
-  assert.ok(report.join.every((j) => j.via === 'codice nella tabella'));
-  assert.match(stdout, /codice ISO3 gia nella tabella/);
+  assert.ok(report.join.every((j) => j.via === 'code in the table'));
+  assert.match(stdout, /ISO3 code already in the table/);
   fs.rmSync(dir, { recursive: true, force: true });
 });
