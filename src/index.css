@@ -91,10 +91,12 @@ body.panel-open .map-wrap {
   outline: none;
 }
 .country.has-data { cursor: pointer; stroke: var(--ink); }
+/* A hairline, not a frame. The selected country is already set apart by the
+   panel naming it; the outline only has to say which shape that is. */
 .country:focus-visible,
 .country.selected {
   stroke: var(--ink);
-  stroke-width: 1.6px;
+  stroke-width: 0.7px;
 }
 
 /* --- legend --------------------------------------------------------------- */

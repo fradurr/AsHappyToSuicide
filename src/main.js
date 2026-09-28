@@ -7,9 +7,9 @@
  *
  * No colour. The subject is deaths, and a colour ramp would turn countries into
  * red and green cells, which reads as a report card. The scale is flat grey,
- * darker where suicide mortality is higher, under a dot grain that is the same
- * everywhere. So the map shows the deaths, and the happiness value lives in the
- * panel.
+ * darker the higher the happiness value, under a dot grain that is the same
+ * everywhere. The map therefore carries the composite — the two sources already
+ * weighed against each other — and the panel opens it back up into its parts.
  */
 
 // Literata: a serif drawn for reading on screen. Bookerly, the Kindle typeface,
@@ -28,23 +28,19 @@ const BORDER_WIDTH = 0.35;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 8;
 
-/** The top of the scale rounds up to this, so the legend reads cleanly. */
-const SCALE_STEP = 5;
-
 /**
- * Where the tone scale stops, as a percentile of the observed rates.
+ * The scale runs the full 0–100 of the happiness value, and not the observed
+ * range.
  *
- * Running the scale to the maximum would hand more than half of it to two
- * countries. Lesotho sits at 40.7 per 100,000 and Eswatini at 31.7, while the
- * median is 8 and nine countries in ten are under 15: on a 0–45 ramp, 135 of
- * 143 countries would crowd into the first three tones and the map would have
- * almost nothing left to say.
+ * Nothing needs capping here. The value is built from percentiles, so it spreads
+ * itself evenly across the classes — which is exactly what the raw mortality
+ * rate would not do: there, two countries far above everyone else took half the
+ * scale and left 135 of 143 crowded into the first three tones.
  *
- * Cutting at the 95th percentile keeps the steps equal — the same jump in tone
- * always means the same jump in deaths — and gathers everything above into one
- * open-ended class, which the legend states as "20+" rather than hiding.
+ * Keeping the ends at 0 and 100 also makes the legend and the panel agree: the
+ * number shown for a country is on the same scale the legend describes.
  */
-const SCALE_CUT = 0.95;
+const VALUE_MAX = 100;
 
 /**
  * Every data file is requested relative to this base.
@@ -171,26 +167,14 @@ async function start() {
 
   const iso3Of = (f) => byId[String(f.id)] ?? byName[f.properties?.name] ?? null;
 
-  // The scale starts at zero: for a mortality rate, starting the axis at the
-  // lowest observed value would inflate differences between countries that are
-  // all near the bottom.
-  const rates = Object.values(values)
-    .map((v) => v.suicide)
-    .filter((x) => Number.isFinite(x))
-    .sort((a, b) => a - b);
-  const cut = rates.length ? rates[Math.floor((rates.length - 1) * SCALE_CUT)] : SCALE_STEP;
-  const maxRate = Math.max(SCALE_STEP, Math.ceil(cut / SCALE_STEP) * SCALE_STEP);
-  // Anything past the cut saturates into the darkest class rather than running
-  // off the scale.
-  const fractionOf = (rate) => (maxRate > 0 ? Math.min(1, rate / maxRate) : 0);
-  const aboveCut = rates.filter((r) => r > maxRate).length;
+  const fractionOf = (value) => Math.min(1, Math.max(0, value / VALUE_MAX));
 
   const projection = geoEqualEarth();
   const path = geoPath(projection);
 
   const defs = el.svg.append('defs');
   createPatterns(defs);
-  drawLegend(maxRate, aboveCut);
+  drawLegend();
 
   const gZoom = el.svg.append('g').attr('class', 'zoom-layer');
   const paths = gZoom
@@ -203,7 +187,7 @@ async function start() {
     .style('fill', (f) => {
       const v = values[iso3Of(f)];
       if (!v) return null; // no data -> paper, no grain
-      return `url(#${patternId(levelFor(fractionOf(v.suicide)))})`;
+      return `url(#${patternId(levelFor(fractionOf(v.index)))})`;
     })
     .attr('stroke-width', BORDER_WIDTH)
     .attr('tabindex', 0)
@@ -212,7 +196,7 @@ async function start() {
       const v = values[iso3Of(f)];
       const name = v?.name ?? f.properties?.name ?? 'unnamed';
       return v
-        ? `${name}, suicide mortality ${fmt(v.suicide)} per 100,000, happiness value ${fmt(v.index)} out of 100`
+        ? `${name}, happiness value ${fmt(v.index)} out of 100, from a wellbeing score of ${fmt(v.whr, 2)} and suicide mortality of ${fmt(v.suicide)} per 100,000`
         : `${name}, no data available`;
     })
     .on('click', (ev, f) => selectCountry(f))
@@ -318,17 +302,9 @@ async function start() {
 }
 
 /** The legend swatches: the same patterns as the map, under their own prefix. */
-function drawLegend(maxRate, aboveCut = 0) {
+function drawLegend() {
   const svg = select('#legend-scale');
   if (svg.empty()) return;
-
-  const ends = document.querySelectorAll('.legend-ends span');
-  if (ends.length === 2) {
-    ends[0].textContent = '0';
-    // The plus sign is the whole point: the last class is open, and saying so
-    // is what keeps the equal steps honest.
-    ends[1].textContent = aboveCut > 0 ? `${maxRate}+` : String(maxRate);
-  }
 
   const SIDE = 22;
   const GAP = 2;
@@ -337,7 +313,7 @@ function drawLegend(maxRate, aboveCut = 0) {
 
   createPatterns(svg.append('defs'), 'legend');
 
-  // Left to right: few deaths (light) -> many deaths (dark).
+  // Left to right: low value (light) -> high value (dark).
   //
   // The swatches live in their own <g> and are selected from there. A plain
   // svg.selectAll('rect') would also pick up the background rects inside the
