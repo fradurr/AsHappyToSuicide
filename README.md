@@ -16,18 +16,26 @@ The original brief is in [`BRIEF-mappa-felicita.md`](./BRIEF-mappa-felicita.md)
 | `public/geo/countries-110m.json` | committed (Natural Earth 1:110m) |
 | map, zoom and pan, country panel | done |
 | intro screen and method page | done |
-| `public/data/countries.json` | **to generate**: the two sources are needed |
+| `public/data/countries.json` | **done**: 143 countries, real data |
 | visual identity | placeholder, to be redone |
+
+### The data in place
+
+143 countries have both figures. Wellbeing comes from the World Happiness
+Report 2026 (a three-year average over 2023–2025), mortality from the WHO's
+Global Health Estimates for 2021.
+
+Four countries have a wellbeing score but no WHO figure — Hong Kong, Palestine,
+Taiwan and Kosovo — and 51 have a WHO figure but are not in the WHR. Five more
+have both but cannot be drawn at 1:110m: Singapore, Malta, Bahrain, Mauritius
+and Comoros. The full account is in `data/build-report.json`.
 
 ### Sample data
 
-Until the real sources are in `data/sources/`, the site falls back to
-`public/data/countries.placeholder.json`: **invented numbers**, produced by
-`npm run placeholder`, useful only for seeing the map work. When they are in
-use, the page carries a full-width black banner saying so.
-
-**That file must be deleted before publishing.** It is the one thing in this
-repository that could make invented numbers look real.
+`npm run placeholder` writes `public/data/countries.placeholder.json`:
+**invented numbers**, useful only for seeing the map work when the real sources
+are absent. The site falls back to it and carries a full-width black banner
+saying so. It is not in the repository, and it must never be published.
 
 ## Seeing the site on your computer
 
@@ -120,6 +128,30 @@ the name-matching problem, which is the most likely way to break the join.
 
 Either way an empty cell means "no figure for this country" and it stays blank,
 while a filled but unreadable cell stops the build and names the row.
+
+## Citing the sources
+
+Our World in Data asks to be cited in this form, and the archive link pins the
+snapshot these figures came from:
+
+> “Data Page: Suicide rate”, part of the following publication: Esteban
+> Ortiz-Ospina and Max Roser (2016) — “Global Health”. Data adapted from World
+> Health Organization. Retrieved from
+> <https://archive.ourworldindata.org/20260826-190237/grapher/death-rate-from-suicides-gho.html>
+> [online resource] (archived on August 26, 2026).
+
+The upstream source behind it:
+
+> Global Health Estimates 2021: Deaths by Cause, Age, Sex, by Country and by
+> Region, 2000–2021. Geneva, World Health Organization; 2024.
+
+And for wellbeing:
+
+> World Happiness Report 2026, Data for Figure 2.1.
+
+All three travel inside `public/data/countries.json`, under `meta.citations`, so
+the numbers cannot circulate without their provenance. They are also printed on
+the site's method page.
 
 ## The formula
 

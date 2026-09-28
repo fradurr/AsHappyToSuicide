@@ -43,6 +43,18 @@ export const WHR_NAME_TO_ISO3 = {
   'Congo, Rep.': 'COG',
   'Congo, Dem. Rep.': 'COD',
 
+  // --- WHR 2026 spellings ---------------------------------------------------
+  // "Congo" on its own is Brazzaville, and "DR Congo" is Kinshasa. The bare
+  // name does resolve to COG by itself, but it is pinned here on purpose: this
+  // is the one pair where getting it wrong would look perfectly fine on the
+  // map, and it should not depend on a library's name list staying put.
+  Congo: 'COG',
+  'DR Congo': 'COD',
+  'Viet Nam': 'VNM',
+  'Republic of Moldova': 'MDA',
+  'Hong Kong SAR of China': 'HKG',
+  'Lao PDR': 'LAO',
+
   // --- Short or colloquial names the WHR uses -------------------------------
   Bolivia: 'BOL',
   Brunei: 'BRN',

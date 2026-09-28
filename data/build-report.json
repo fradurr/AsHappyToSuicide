@@ -1,0 +1,983 @@
+{
+  "generated": "2026-09-28",
+  "weight": 0.25,
+  "suicideYear": 2021,
+  "whrRows": 147,
+  "countriesWithData": 143,
+  "wellbeingOnly": [
+    {
+      "iso3": "HKG",
+      "name": "Hong Kong SAR of China"
+    },
+    {
+      "iso3": "PSE",
+      "name": "State of Palestine"
+    },
+    {
+      "iso3": "TWN",
+      "name": "Taiwan Province of China"
+    },
+    {
+      "iso3": "XKX",
+      "name": "Kosovo"
+    }
+  ],
+  "suicideOnly": [
+    {
+      "iso3": "AGO",
+      "name": "Angola"
+    },
+    {
+      "iso3": "AND",
+      "name": "Andorra"
+    },
+    {
+      "iso3": "ATG",
+      "name": "Antigua and Barbuda"
+    },
+    {
+      "iso3": "BDI",
+      "name": "Burundi"
+    },
+    {
+      "iso3": "BHS",
+      "name": "Bahamas"
+    },
+    {
+      "iso3": "BLR",
+      "name": "Belarus"
+    },
+    {
+      "iso3": "BRB",
+      "name": "Barbados"
+    },
+    {
+      "iso3": "BRN",
+      "name": "Brunei"
+    },
+    {
+      "iso3": "BTN",
+      "name": "Bhutan"
+    },
+    {
+      "iso3": "CAF",
+      "name": "Central African Republic"
+    },
+    {
+      "iso3": "COK",
+      "name": "Cook Islands"
+    },
+    {
+      "iso3": "CPV",
+      "name": "Cape Verde"
+    },
+    {
+      "iso3": "CUB",
+      "name": "Cuba"
+    },
+    {
+      "iso3": "DJI",
+      "name": "Djibouti"
+    },
+    {
+      "iso3": "DMA",
+      "name": "Dominica"
+    },
+    {
+      "iso3": "ERI",
+      "name": "Eritrea"
+    },
+    {
+      "iso3": "FJI",
+      "name": "Fiji"
+    },
+    {
+      "iso3": "FSM",
+      "name": "Micronesia (country)"
+    },
+    {
+      "iso3": "GNB",
+      "name": "Guinea-Bissau"
+    },
+    {
+      "iso3": "GNQ",
+      "name": "Equatorial Guinea"
+    },
+    {
+      "iso3": "GRD",
+      "name": "Grenada"
+    },
+    {
+      "iso3": "GUY",
+      "name": "Guyana"
+    },
+    {
+      "iso3": "HTI",
+      "name": "Haiti"
+    },
+    {
+      "iso3": "KIR",
+      "name": "Kiribati"
+    },
+    {
+      "iso3": "KNA",
+      "name": "Saint Kitts and Nevis"
+    },
+    {
+      "iso3": "LCA",
+      "name": "Saint Lucia"
+    },
+    {
+      "iso3": "MCO",
+      "name": "Monaco"
+    },
+    {
+      "iso3": "MDV",
+      "name": "Maldives"
+    },
+    {
+      "iso3": "MHL",
+      "name": "Marshall Islands"
+    },
+    {
+      "iso3": "NIU",
+      "name": "Niue"
+    },
+    {
+      "iso3": "NRU",
+      "name": "Nauru"
+    },
+    {
+      "iso3": "PLW",
+      "name": "Palau"
+    },
+    {
+      "iso3": "PNG",
+      "name": "Papua New Guinea"
+    },
+    {
+      "iso3": "PRK",
+      "name": "North Korea"
+    },
+    {
+      "iso3": "QAT",
+      "name": "Qatar"
+    },
+    {
+      "iso3": "RWA",
+      "name": "Rwanda"
+    },
+    {
+      "iso3": "SDN",
+      "name": "Sudan"
+    },
+    {
+      "iso3": "SLB",
+      "name": "Solomon Islands"
+    },
+    {
+      "iso3": "SMR",
+      "name": "San Marino"
+    },
+    {
+      "iso3": "SSD",
+      "name": "South Sudan"
+    },
+    {
+      "iso3": "STP",
+      "name": "Sao Tome and Principe"
+    },
+    {
+      "iso3": "SUR",
+      "name": "Suriname"
+    },
+    {
+      "iso3": "SYC",
+      "name": "Seychelles"
+    },
+    {
+      "iso3": "SYR",
+      "name": "Syria"
+    },
+    {
+      "iso3": "TKM",
+      "name": "Turkmenistan"
+    },
+    {
+      "iso3": "TLS",
+      "name": "East Timor"
+    },
+    {
+      "iso3": "TON",
+      "name": "Tonga"
+    },
+    {
+      "iso3": "TUV",
+      "name": "Tuvalu"
+    },
+    {
+      "iso3": "VCT",
+      "name": "Saint Vincent and the Grenadines"
+    },
+    {
+      "iso3": "VUT",
+      "name": "Vanuatu"
+    },
+    {
+      "iso3": "WSM",
+      "name": "Samoa"
+    }
+  ],
+  "skippedNoIsoCode": [],
+  "withDataWithoutGeometry": [
+    "SGP",
+    "MLT",
+    "BHR",
+    "MUS",
+    "COM"
+  ],
+  "geometryFeatures": 177,
+  "geometryWithoutIso3": [
+    "N. Cyprus",
+    "Somaliland"
+  ],
+  "suicideAggregateRowsDropped": 154,
+  "suicideOlderYearOnly": [],
+  "join": [
+    {
+      "whrName": "Afghanistan",
+      "iso3": "AFG",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Albania",
+      "iso3": "ALB",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "United Arab Emirates",
+      "iso3": "ARE",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Argentina",
+      "iso3": "ARG",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Armenia",
+      "iso3": "ARM",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Australia",
+      "iso3": "AUS",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Austria",
+      "iso3": "AUT",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Azerbaijan",
+      "iso3": "AZE",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Belgium",
+      "iso3": "BEL",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Benin",
+      "iso3": "BEN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Burkina Faso",
+      "iso3": "BFA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Bangladesh",
+      "iso3": "BGD",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Bulgaria",
+      "iso3": "BGR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Bahrain",
+      "iso3": "BHR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Bosnia and Herzegovina",
+      "iso3": "BIH",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Belize",
+      "iso3": "BLZ",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Bolivia",
+      "iso3": "BOL",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Brazil",
+      "iso3": "BRA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Botswana",
+      "iso3": "BWA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Canada",
+      "iso3": "CAN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Switzerland",
+      "iso3": "CHE",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Chile",
+      "iso3": "CHL",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "China",
+      "iso3": "CHN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Côte d’Ivoire",
+      "iso3": "CIV",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Cameroon",
+      "iso3": "CMR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "DR Congo",
+      "iso3": "COD",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Congo",
+      "iso3": "COG",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Colombia",
+      "iso3": "COL",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Comoros",
+      "iso3": "COM",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Costa Rica",
+      "iso3": "CRI",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Cyprus",
+      "iso3": "CYP",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Czechia",
+      "iso3": "CZE",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Germany",
+      "iso3": "DEU",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Denmark",
+      "iso3": "DNK",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Dominican Republic",
+      "iso3": "DOM",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Algeria",
+      "iso3": "DZA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Ecuador",
+      "iso3": "ECU",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Egypt",
+      "iso3": "EGY",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Spain",
+      "iso3": "ESP",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Estonia",
+      "iso3": "EST",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Ethiopia",
+      "iso3": "ETH",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Finland",
+      "iso3": "FIN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "France",
+      "iso3": "FRA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Gabon",
+      "iso3": "GAB",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "United Kingdom",
+      "iso3": "GBR",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Georgia",
+      "iso3": "GEO",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Ghana",
+      "iso3": "GHA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Guinea",
+      "iso3": "GIN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Gambia",
+      "iso3": "GMB",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Greece",
+      "iso3": "GRC",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Guatemala",
+      "iso3": "GTM",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Hong Kong SAR of China",
+      "iso3": "HKG",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Honduras",
+      "iso3": "HND",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Croatia",
+      "iso3": "HRV",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Hungary",
+      "iso3": "HUN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Indonesia",
+      "iso3": "IDN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "India",
+      "iso3": "IND",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Ireland",
+      "iso3": "IRL",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Iran",
+      "iso3": "IRN",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Iraq",
+      "iso3": "IRQ",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Iceland",
+      "iso3": "ISL",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Israel",
+      "iso3": "ISR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Italy",
+      "iso3": "ITA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Jamaica",
+      "iso3": "JAM",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Jordan",
+      "iso3": "JOR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Japan",
+      "iso3": "JPN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Kazakhstan",
+      "iso3": "KAZ",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Kenya",
+      "iso3": "KEN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Kyrgyzstan",
+      "iso3": "KGZ",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Cambodia",
+      "iso3": "KHM",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Republic of Korea",
+      "iso3": "KOR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Kuwait",
+      "iso3": "KWT",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Lao PDR",
+      "iso3": "LAO",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Lebanon",
+      "iso3": "LBN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Liberia",
+      "iso3": "LBR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Libya",
+      "iso3": "LBY",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Sri Lanka",
+      "iso3": "LKA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Lesotho",
+      "iso3": "LSO",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Lithuania",
+      "iso3": "LTU",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Luxembourg",
+      "iso3": "LUX",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Latvia",
+      "iso3": "LVA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Morocco",
+      "iso3": "MAR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Republic of Moldova",
+      "iso3": "MDA",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Madagascar",
+      "iso3": "MDG",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Mexico",
+      "iso3": "MEX",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "North Macedonia",
+      "iso3": "MKD",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Mali",
+      "iso3": "MLI",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Malta",
+      "iso3": "MLT",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Myanmar",
+      "iso3": "MMR",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Montenegro",
+      "iso3": "MNE",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Mongolia",
+      "iso3": "MNG",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Mozambique",
+      "iso3": "MOZ",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Mauritania",
+      "iso3": "MRT",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Mauritius",
+      "iso3": "MUS",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Malawi",
+      "iso3": "MWI",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Malaysia",
+      "iso3": "MYS",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Namibia",
+      "iso3": "NAM",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Niger",
+      "iso3": "NER",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Nigeria",
+      "iso3": "NGA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Nicaragua",
+      "iso3": "NIC",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Netherlands",
+      "iso3": "NLD",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Norway",
+      "iso3": "NOR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Nepal",
+      "iso3": "NPL",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "New Zealand",
+      "iso3": "NZL",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Oman",
+      "iso3": "OMN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Pakistan",
+      "iso3": "PAK",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Panama",
+      "iso3": "PAN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Peru",
+      "iso3": "PER",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Philippines",
+      "iso3": "PHL",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Poland",
+      "iso3": "POL",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Portugal",
+      "iso3": "PRT",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Paraguay",
+      "iso3": "PRY",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "State of Palestine",
+      "iso3": "PSE",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Romania",
+      "iso3": "ROU",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Russian Federation",
+      "iso3": "RUS",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Saudi Arabia",
+      "iso3": "SAU",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Senegal",
+      "iso3": "SEN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Singapore",
+      "iso3": "SGP",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Sierra Leone",
+      "iso3": "SLE",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "El Salvador",
+      "iso3": "SLV",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Somalia",
+      "iso3": "SOM",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Serbia",
+      "iso3": "SRB",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Slovakia",
+      "iso3": "SVK",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Slovenia",
+      "iso3": "SVN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Sweden",
+      "iso3": "SWE",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Eswatini",
+      "iso3": "SWZ",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Chad",
+      "iso3": "TCD",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Togo",
+      "iso3": "TGO",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Thailand",
+      "iso3": "THA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Tajikistan",
+      "iso3": "TJK",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Trinidad and Tobago",
+      "iso3": "TTO",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Tunisia",
+      "iso3": "TUN",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Türkiye",
+      "iso3": "TUR",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Taiwan Province of China",
+      "iso3": "TWN",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Tanzania",
+      "iso3": "TZA",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Uganda",
+      "iso3": "UGA",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Ukraine",
+      "iso3": "UKR",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Uruguay",
+      "iso3": "URY",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "United States",
+      "iso3": "USA",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Uzbekistan",
+      "iso3": "UZB",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Venezuela",
+      "iso3": "VEN",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Viet Nam",
+      "iso3": "VNM",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Kosovo",
+      "iso3": "XKX",
+      "via": "lookup table"
+    },
+    {
+      "whrName": "Yemen",
+      "iso3": "YEM",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "South Africa",
+      "iso3": "ZAF",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Zambia",
+      "iso3": "ZMB",
+      "via": "ISO name"
+    },
+    {
+      "whrName": "Zimbabwe",
+      "iso3": "ZWE",
+      "via": "ISO name"
+    }
+  ]
+}

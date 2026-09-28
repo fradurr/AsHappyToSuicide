@@ -399,6 +399,15 @@ body.panel-open .panel { transform: translateX(0); }
   white-space: pre-wrap;
 }
 
+.citation {
+  margin: 0 0 12px;
+  padding-left: 14px;
+  border-left: 1px solid var(--hairline);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
 .method-help {
   margin-top: 26px;
   padding-top: 18px;

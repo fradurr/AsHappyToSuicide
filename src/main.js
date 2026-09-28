@@ -32,6 +32,21 @@ const ZOOM_MAX = 8;
 const SCALE_STEP = 5;
 
 /**
+ * Where the tone scale stops, as a percentile of the observed rates.
+ *
+ * Running the scale to the maximum would hand more than half of it to two
+ * countries. Lesotho sits at 40.7 per 100,000 and Eswatini at 31.7, while the
+ * median is 8 and nine countries in ten are under 15: on a 0–45 ramp, 135 of
+ * 143 countries would crowd into the first three tones and the map would have
+ * almost nothing left to say.
+ *
+ * Cutting at the 95th percentile keeps the steps equal — the same jump in tone
+ * always means the same jump in deaths — and gathers everything above into one
+ * open-ended class, which the legend states as "20+" rather than hiding.
+ */
+const SCALE_CUT = 0.95;
+
+/**
  * Every data file is requested relative to this base.
  *
  * On GitHub Pages the site does not sit at the root of the domain but inside a
@@ -161,18 +176,21 @@ async function start() {
   // all near the bottom.
   const rates = Object.values(values)
     .map((v) => v.suicide)
-    .filter((x) => Number.isFinite(x));
-  const maxRate = rates.length
-    ? Math.ceil(Math.max(...rates) / SCALE_STEP) * SCALE_STEP
-    : SCALE_STEP;
-  const fractionOf = (rate) => (maxRate > 0 ? rate / maxRate : 0);
+    .filter((x) => Number.isFinite(x))
+    .sort((a, b) => a - b);
+  const cut = rates.length ? rates[Math.floor((rates.length - 1) * SCALE_CUT)] : SCALE_STEP;
+  const maxRate = Math.max(SCALE_STEP, Math.ceil(cut / SCALE_STEP) * SCALE_STEP);
+  // Anything past the cut saturates into the darkest class rather than running
+  // off the scale.
+  const fractionOf = (rate) => (maxRate > 0 ? Math.min(1, rate / maxRate) : 0);
+  const aboveCut = rates.filter((r) => r > maxRate).length;
 
   const projection = geoEqualEarth();
   const path = geoPath(projection);
 
   const defs = el.svg.append('defs');
   createPatterns(defs);
-  drawLegend(maxRate);
+  drawLegend(maxRate, aboveCut);
 
   const gZoom = el.svg.append('g').attr('class', 'zoom-layer');
   const paths = gZoom
@@ -300,14 +318,16 @@ async function start() {
 }
 
 /** The legend swatches: the same patterns as the map, under their own prefix. */
-function drawLegend(maxRate) {
+function drawLegend(maxRate, aboveCut = 0) {
   const svg = select('#legend-scale');
   if (svg.empty()) return;
 
   const ends = document.querySelectorAll('.legend-ends span');
   if (ends.length === 2) {
     ends[0].textContent = '0';
-    ends[1].textContent = String(maxRate);
+    // The plus sign is the whole point: the last class is open, and saying so
+    // is what keeps the equal steps honest.
+    ends[1].textContent = aboveCut > 0 ? `${maxRate}+` : String(maxRate);
   }
 
   const SIDE = 22;

@@ -67,8 +67,11 @@ const SOURCES = {
     // tabella a mano partendo da data/templates/.
     accepts: ['whr-figure-2.1.xlsx', 'whr-figure-2.1.csv', 'wellbeing.csv', 'wellbeing.xlsx'],
     page: 'https://worldhappiness.report/data-sharing/',
-    edition: 2025,
-    years: '2022-2024',
+    edition: 2026,
+    // The score on the most recent row is itself a three-year average, so the
+    // window is the three years ending with that row's year.
+    years: '2023-2025',
+    citation: 'World Happiness Report 2026, Data for Figure 2.1.',
   },
   suicide: {
     label: 'WHO Global Health Estimates — age-standardised suicide rate',
@@ -77,6 +80,18 @@ const SOURCES = {
     accepts: ['who-suicide-rate.csv', 'who-suicide-rate.xlsx', 'suicide.csv', 'suicide.xlsx'],
     page: 'https://ourworldindata.org/grapher/death-rate-from-suicides-gho',
     source: 'WHO GHE 2021',
+    // Our World in Data asks to be cited in this exact form, and the archive
+    // link pins the snapshot the figures came from. It travels into the
+    // published JSON so the numbers never circulate without their provenance.
+    citation:
+      '“Data Page: Suicide rate”, part of the following publication: Esteban ' +
+      'Ortiz-Ospina and Max Roser (2016) — “Global Health”. Data adapted from ' +
+      'World Health Organization. Retrieved from ' +
+      'https://archive.ourworldindata.org/20260826-190237/grapher/death-rate-from-suicides-gho.html ' +
+      '[online resource] (archived on August 26, 2026).',
+    upstream:
+      'Global Health Estimates 2021: Deaths by Cause, Age, Sex, by Country and ' +
+      'by Region, 2000-2021. Geneva, World Health Organization; 2024.',
   },
 };
 
@@ -258,10 +273,14 @@ function findWellbeingColumns(header) {
       h === 'life ladder' ||
       h === 'wellbeing' ||
       h === 'cantril' ||
-      h.startsWith('ladder score'),
+      h.startsWith('ladder score') ||
+      // WHR 2026 spells it this way, and the parenthetical carries the averaging
+      // window, so the prefix is matched rather than the whole string.
+      h.startsWith('life evaluation'),
   );
   const iso3Idx = norm.findIndex((h) => h === 'iso3' || h === 'code' || h === 'iso');
-  return { countryIdx, scoreIdx, iso3Idx, header };
+  const yearIdx = norm.findIndex((h) => h === 'year');
+  return { countryIdx, scoreIdx, iso3Idx, yearIdx, header };
 }
 
 /** Reads a CSV or an xlsx as raw rows. Both sources go through here. */
@@ -300,6 +319,7 @@ async function readWellbeing(file) {
   let countryIdx = -1;
   let scoreIdx = -1;
   let iso3Idx = -1;
+  let yearIdx = -1;
   for (let i = 0; i < Math.min(rows.length, 10); i += 1) {
     const found = findWellbeingColumns(rows[i].map((v) => (v == null ? '' : String(v))));
     // Code plus score is enough: the country name becomes optional once the
@@ -309,6 +329,7 @@ async function readWellbeing(file) {
       countryIdx = found.countryIdx;
       scoreIdx = found.scoreIdx;
       iso3Idx = found.iso3Idx;
+      yearIdx = found.yearIdx;
       break;
     }
   }
@@ -349,7 +370,8 @@ async function readWellbeing(file) {
       rejected.push(`row ${line}: "${iso3 || name}" has score ${score}, outside the 0–10 scale`);
       continue;
     }
-    out.push({ name, iso3, score });
+    const year = yearIdx === -1 ? undefined : Number(r[yearIdx]);
+    out.push({ name, iso3, score, year });
   }
 
   if (rejected.length) {
@@ -359,6 +381,18 @@ async function readWellbeing(file) {
     );
   }
   if (!out.length) fail(`No valid rows in the wellbeing source: ${rel(file)}`);
+
+  // The WHR 2026 file stacks every edition since 2011 in one sheet, one row per
+  // country per year. Only the most recent year is kept: mixing years would put
+  // countries on different measurement windows without saying so.
+  if (yearIdx !== -1) {
+    const years = out.map((r) => r.year).filter((y) => Number.isFinite(y));
+    if (years.length) {
+      const latest = Math.max(...years);
+      const kept = out.filter((r) => r.year === latest);
+      return Object.assign(kept, { year: latest, droppedOlderYears: out.length - kept.length });
+    }
+  }
   return out;
 }
 
@@ -729,6 +763,11 @@ async function main() {
     note:
       'Composite value: percentiles of wellbeing and of suicide mortality, ' +
       'computed within the sample of countries that have both figures.',
+    citations: {
+      wellbeing: SOURCES.wellbeing.citation,
+      suicide: SOURCES.suicide.citation,
+      suicideUpstream: SOURCES.suicide.upstream,
+    },
   };
 
   fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });

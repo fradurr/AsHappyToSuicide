@@ -77,7 +77,8 @@
             The two quantities cannot be compared as they are: one runs from 0 to
             10, the other counts deaths per 100,000 people. Both are therefore
             turned into percentiles within the group of countries that have both
-            figures — 100 is the best in the group, 0 the worst.
+            figures — 143 of them — where 100 is the best in the group and 0 the
+            worst.
           </p>
           <pre class="formula">p_wellbeing = percentile(score 0–10)
 p_suicide   = percentile(−rate per 100,000)
@@ -109,16 +110,35 @@ value = (1 − w) × p_wellbeing + w × p_suicide</pre>
             figure is arbitrary, and should be defended as such.
           </p>
           <p>
-            <b>The two sources cover different years.</b> The wellbeing score is an
-            average of the three most recent years available; the mortality
-            estimates refer to an earlier year.
+            <b>The two sources cover different years.</b> The wellbeing score is
+            an average of 2023–2025; the mortality estimates are for 2021. Four
+            years separate the two, and nothing here bridges them.
           </p>
 
           <h3>Sources</h3>
           <p>
-            Wellbeing: World Happiness Report, data behind Figure 2.1.<br />
-            Mortality: World Health Organization, Global Health Estimates,
-            age-standardised rates.
+            <b>Wellbeing.</b> World Happiness Report 2026, data behind Figure
+            2.1. The score is a three-year average covering 2023–2025.
+          </p>
+          <p>
+            <b>Suicide mortality.</b> Age-standardised rates for 2021, from the
+            World Health Organization's Global Health Estimates, via Our World
+            in Data.
+          </p>
+          <p class="citation">
+            “Data Page: Suicide rate”, part of the following publication:
+            Esteban Ortiz-Ospina and Max Roser (2016) — “Global Health”. Data
+            adapted from World Health Organization. Retrieved from
+            <a
+              href="https://archive.ourworldindata.org/20260826-190237/grapher/death-rate-from-suicides-gho.html"
+              rel="noopener"
+              >archive.ourworldindata.org</a
+            >
+            [online resource] (archived on August 26, 2026).
+          </p>
+          <p class="citation">
+            Global Health Estimates 2021: Deaths by Cause, Age, Sex, by Country
+            and by Region, 2000–2021. Geneva, World Health Organization; 2024.
           </p>
           <p>
             The GHE estimates are used rather than the raw Mortality Database,
