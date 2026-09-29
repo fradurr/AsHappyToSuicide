@@ -19,7 +19,10 @@ import './font.css';
 
 import { geoEqualEarth, geoPath } from 'd3-geo';
 import { select } from 'd3-selection';
-import { zoom } from 'd3-zoom';
+// Imported for the side effect: it is what puts .transition() on a selection,
+// and d3-zoom's own transform interpolator behind it.
+import 'd3-transition';
+import { zoom, zoomIdentity, zoomTransform } from 'd3-zoom';
 import { feature } from 'topojson-client';
 
 import { createPatterns, createHatch, patternId, levelFor, tones, HATCH_ID, LEVELS } from './scale.js';
@@ -35,18 +38,31 @@ const OUTLINE_GAP = 1;
 const OUTLINE_LINE = 0.7;
 
 /**
- * The width on screen of the invisible band that makes a withheld state
- * clickable.
+ * The smallest a thing can be on screen and still be found by a finger, in px.
  *
- * At world zoom Israel is 4.7px wide on a laptop and 1.2px on a phone — a
- * sliver you hit by luck, and the click lands on Jordan or Egypt instead. That
- * would answer a deliberate silence with someone else's figures. The band is
- * counter-scaled, so it only matters where precision is impossible anyway.
+ * At world zoom Israel is 4.7px wide on a laptop and 1.2px on a phone. The
+ * band around it is not a fixed halo but whatever is left of this number once
+ * the shape itself is measured: wide when the shape is a sliver, nothing at
+ * all once the shape is big enough to hit. It never takes from a neighbour
+ * except where no click could have been accurate anyway.
  */
-const WITHHELD_HIT = 14;
+const MIN_TARGET = 22;
 
 const ZOOM_MIN = 1;
-const ZOOM_MAX = 8;
+/**
+ * Far enough in to read a city-state. The geometry is the 110m world atlas, so
+ * past about 20 the coastlines show their own corners — the limit is the
+ * source, not the viewer.
+ */
+const ZOOM_MAX = 40;
+
+/**
+ * Selecting a country brings the map to it: close enough to see the shape the
+ * panel is talking about, not so close that a small one fills the screen.
+ */
+const FOCUS_MAX = 18;
+const FOCUS_FILL = 0.55;
+const FOCUS_MS = 620;
 
 /**
  * The scale runs the full 0–100 of the happiness value, and not the observed
@@ -372,6 +388,15 @@ async function start() {
     .attr('aria-hidden', 'true')
     .on('click', (ev, f) => selectCountry(f));
 
+  function sizeWithheldHits(k) {
+    withheldHits.attr('stroke-width', function width() {
+      const bb = this.getBBox();
+      // The narrow side is the one that decides whether you can hit it.
+      const narrow = Math.min(bb.width, bb.height) * k;
+      return Math.max(0, MIN_TARGET - narrow) / k;
+    });
+  }
+
   // --- size and projection --------------------------------------------------
   function resize() {
     const { width, height } = el.stage.getBoundingClientRect();
@@ -385,30 +410,71 @@ async function start() {
     );
     paths.attr('d', path);
     withheldHits.attr('d', path);
+    // The shapes change size with the window, and so does what is left to add.
+    sizeWithheldHits(zoomTransform(el.svg.node()).k);
     outlines.forEach((o) => o.redraw());
   }
-  withheldHits.attr('stroke-width', WITHHELD_HIT);
-
   resize();
   new ResizeObserver(resize).observe(el.stage);
 
   // --- zoom and pan ---------------------------------------------------------
-  el.svg.call(
-    zoom()
-      .scaleExtent([ZOOM_MIN, ZOOM_MAX])
-      .on('zoom', (ev) => {
-        const { k } = ev.transform;
-        gZoom.attr('transform', ev.transform);
-        // Without this the borders look like walls at high zoom.
-        paths.attr('stroke-width', BORDER_WIDTH / k);
-        withheldHits.attr('stroke-width', WITHHELD_HIT / k);
-        outlines.forEach((o) => o.width(k));
-        // Patterns live in the path's user space, so without a correction the
-        // zoom would blow the grain up along with the geography. Paper grain
-        // does not zoom: counter-scaling keeps it the same size on screen.
-        defs.selectAll('pattern').attr('patternTransform', `scale(${1 / k})`);
-      }),
-  );
+  const zoomer = zoom()
+    .scaleExtent([ZOOM_MIN, ZOOM_MAX])
+    .on('zoom', (ev) => {
+      const { k } = ev.transform;
+      gZoom.attr('transform', ev.transform);
+      // Without this the borders look like walls at high zoom.
+      paths.attr('stroke-width', BORDER_WIDTH / k);
+      sizeWithheldHits(k);
+      outlines.forEach((o) => o.width(k));
+      // Patterns live in the path's user space, so without a correction the
+      // zoom would blow the grain up along with the geography. Paper grain
+      // does not zoom: counter-scaling keeps it the same size on screen.
+      defs.selectAll('pattern').attr('patternTransform', `scale(${1 / k})`);
+    });
+  el.svg.call(zoomer);
+
+  /**
+   * The part of the stage the panel is not covering, in the map's own
+   * coordinates — which is where a selected country has to end up.
+   *
+   * On a wide screen the panel takes a column on the right and the map slides
+   * left to meet it, so the visible band sits `--shift` further along than the
+   * screen says. On a narrow one the panel is a sheet from the bottom and the
+   * map does not move.
+   */
+  function viewBox() {
+    const stage = el.stage.getBoundingClientRect();
+    const panel = el.panel.getBoundingClientRect();
+    if (matchMedia('(max-width: 720px)').matches) {
+      return { x0: 0, y0: 0, x1: stage.width, y1: Math.max(160, stage.height - panel.height) };
+    }
+    const shift = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--shift')) || 0;
+    return { x0: shift, y0: 0, x1: stage.width - panel.width + shift, y1: stage.height };
+  }
+
+  /** Brings the map to a country, into the part of it that can still be seen. */
+  function focusOn(f) {
+    const [[x0, y0], [x1, y1]] = path.bounds(f);
+    const w = Math.max(1e-6, x1 - x0);
+    const h = Math.max(1e-6, y1 - y0);
+    const box = viewBox();
+    const bw = box.x1 - box.x0;
+    const bh = box.y1 - box.y0;
+    if (bw <= 0 || bh <= 0) return;
+
+    const k = Math.max(ZOOM_MIN, Math.min(FOCUS_MAX, FOCUS_FILL * Math.min(bw / w, bh / h)));
+    const t = zoomIdentity
+      .translate((box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2)
+      .scale(k)
+      .translate(-(x0 + x1) / 2, -(y0 + y1) / 2);
+
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.svg.call(zoomer.transform, t);
+      return;
+    }
+    el.svg.transition().duration(FOCUS_MS).call(zoomer.transform, t);
+  }
 
   // --- selection ------------------------------------------------------------
   let selected = null;
@@ -430,6 +496,7 @@ async function start() {
 
     if (isWithheld) {
       open();
+      focusOn(f);
       return;
     }
 
@@ -472,6 +539,8 @@ async function start() {
     }
 
     open();
+    // After the panel, so that the space it leaves is what the map aims at.
+    focusOn(f);
   }
 
   el.svg.on('click', (ev) => {
