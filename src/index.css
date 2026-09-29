@@ -233,6 +233,24 @@ body.panel-open .panel { transform: translateX(0); }
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/*
+ * The trademark symbol.
+ *
+ * ™ and not ®: ® asserts a registration, and asserting one that does not exist
+ * is a false statement with consequences in most jurisdictions. ™ claims the
+ * mark without claiming a registry entry, and needs nobody's permission.
+ *
+ * Hidden from screen readers at every occurrence: hearing "trademark" after the
+ * name each time a country is selected would be noise, not information.
+ */
+.mark {
+  font-size: 0.5em;
+  font-feature-settings: 'sups' off;
+  vertical-align: super;
+  letter-spacing: 0;
+  opacity: 0.75;
+}
+
 .value-label {
   display: inline-block;
   margin-top: 10px;
