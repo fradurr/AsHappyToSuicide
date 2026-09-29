@@ -15,7 +15,7 @@
   --ink: #26241f;
   --ink-soft: #6e6960;
   --hairline: #cfc9bd;
-  --panel-width: 380px;
+  --panel-width: 420px;
   --shift: 150px;
   --duration: 180ms;
 }
@@ -307,17 +307,21 @@ body.panel-open .panel { transform: translateX(0); }
 
 .compare-btn {
   flex: none;
-  margin-bottom: 2px;
-  padding: 5px 10px;
+  margin-bottom: 3px;
+  padding: 10px 15px;
   white-space: nowrap;
   border: 1px solid var(--hairline);
-  background: var(--paper);
+  background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
+  transition: background var(--duration) ease, border-color var(--duration) ease;
 }
-.compare-btn:hover { border-color: var(--ink); }
+.compare-btn:hover {
+  border-color: var(--ink-soft);
+  background: var(--paper);
+}
 
 /* --- the three rankings, side by side ------------------------------------ */
 
@@ -458,7 +462,7 @@ body.panel-open .panel { transform: translateX(0); }
    it: an absolutely positioned overlay otherwise wins whatever the order. */
 .compare-col { position: relative; }
 
-/* The composite is the column the other two are read against. */
+/* The composite is where the other two columns lead. */
 .compare-col.is-primary,
 .compare-heads .is-primary { background: var(--paper); }
 

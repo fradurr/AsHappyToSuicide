@@ -32,7 +32,7 @@ const BORDER_WIDTH = 0.35;
  * `insetOutline` explains how they are drawn.
  */
 const OUTLINE_GAP = 1;
-const OUTLINE_LINE = 0.45;
+const OUTLINE_LINE = 0.7;
 
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 8;
@@ -452,9 +452,9 @@ async function start() {
   // --- the three rankings, side by side -------------------------------------
 
   /**
-   * The composite sits between the two figures it is made of, and reads left to
-   * right: the first line says how far a country moves once suicides are
-   * counted, the second says why it moved.
+   * The order of the columns is the argument: you start from the life
+   * evaluation, you hold it against the suicide rate, and the happiness value
+   * is what comes out. The two dashed lines are those two steps.
    *
    * The lists are there to be read, not clicked through. Half of what they
    * carry is deaths, and a ranking that invites you to poke at it starts to
@@ -468,17 +468,17 @@ async function start() {
       figure: (c) => fmt(c.whr, 2),
     },
     {
+      key: 'rankSuicide',
+      title: 'Suicide mortality',
+      unit: 'per 100,000, highest first',
+      figure: (c) => fmt(c.suicide),
+    },
+    {
       key: 'rank',
       title: 'Happiness value',
       unit: '0\u2013100, highest first',
       figure: (c) => fmt(c.index),
       primary: true,
-    },
-    {
-      key: 'rankSuicide',
-      title: 'Suicide mortality',
-      unit: 'per 100,000, highest first',
-      figure: (c) => fmt(c.suicide),
     },
   ];
 
