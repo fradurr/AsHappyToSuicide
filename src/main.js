@@ -22,7 +22,7 @@ import { select } from 'd3-selection';
 import { zoom } from 'd3-zoom';
 import { feature } from 'topojson-client';
 
-import { createPatterns, patternId, levelFor, tones, LEVELS } from './scale.js';
+import { createPatterns, createHatch, patternId, levelFor, tones, HATCH_ID, LEVELS } from './scale.js';
 
 const BORDER_WIDTH = 0.35;
 
@@ -33,6 +33,17 @@ const BORDER_WIDTH = 0.35;
  */
 const OUTLINE_GAP = 1;
 const OUTLINE_LINE = 0.7;
+
+/**
+ * The width on screen of the invisible band that makes a withheld state
+ * clickable.
+ *
+ * At world zoom Israel is 4.7px wide on a laptop and 1.2px on a phone — a
+ * sliver you hit by luck, and the click lands on Jordan or Egypt instead. That
+ * would answer a deliberate silence with someone else's figures. The band is
+ * counter-scaled, so it only matters where precision is impossible anyway.
+ */
+const WITHHELD_HIT = 14;
 
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 8;
@@ -208,11 +219,26 @@ async function start() {
 
   const fractionOf = (value) => Math.min(1, Math.max(0, value / VALUE_MAX));
 
+  /**
+   * What a country is painted with. Null is the paper itself: no data, no
+   * grain, nothing claimed.
+   *
+   * A withheld state is ruled over rather than left empty. Empty is what a
+   * country with no figures looks like, and these figures exist.
+   */
+  const paintOf = (f) => {
+    const iso3 = iso3Of(f);
+    if (withheld[iso3]) return `url(#${HATCH_ID})`;
+    const v = values[iso3];
+    return v ? `url(#${patternId(levelFor(fractionOf(v.index)))})` : null;
+  };
+
   const projection = geoEqualEarth();
   const path = geoPath(projection);
 
   const defs = el.svg.append('defs');
   createPatterns(defs);
+  createHatch(defs);
   drawLegend();
 
   const gZoom = el.svg.append('g').attr('class', 'zoom-layer');
@@ -227,11 +253,7 @@ async function start() {
     })
     // Inline style rather than attribute: a presentation attribute loses against
     // any CSS rule, and the background of .country would always win.
-    .style('fill', (f) => {
-      const v = values[iso3Of(f)];
-      if (!v) return null; // no data -> paper, no grain
-      return `url(#${patternId(levelFor(fractionOf(v.index)))})`;
-    })
+    .style('fill', (f) => paintOf(f))
     .attr('stroke-width', BORDER_WIDTH)
     .attr('tabindex', 0)
     .attr('role', 'button')
@@ -259,11 +281,6 @@ async function start() {
     })
     .on('blur', () => focusOutline.hide());
 
-  /** The paint a country is filled with, which the outline has to restore. */
-  const fillOf = (f) => {
-    const v = values[iso3Of(f)];
-    return v ? `url(#${patternId(levelFor(fractionOf(v.index)))})` : 'var(--paper)';
-  };
 
   /**
    * The mark on a selected country: a hairline inside the border, set in from
@@ -294,7 +311,7 @@ async function start() {
       const d = path(f);
       clip.attr('d', d);
       line.attr('d', d);
-      gap.attr('d', d).style('stroke', fillOf(f));
+      gap.attr('d', d).style('stroke', paintOf(f) ?? 'var(--paper)');
       edge.attr('d', d).classed('faint', !values[iso3Of(f)] && !withheld[iso3Of(f)]);
     };
 
@@ -334,6 +351,27 @@ async function start() {
   const outlines = [selectionOutline, focusOutline];
   outlines.forEach((o) => o.width(1));
 
+  /**
+   * A band of nothing around a withheld state, wide enough to be hit.
+   *
+   * Raising the state above its neighbours was not enough: at world zoom its
+   * own outline is a few pixels across, and the click goes to whoever it
+   * borders. This path paints nothing and only catches the pointer. It is
+   * above everything, so within its reach the silence wins — which is the
+   * point: better to answer with the statement than with Jordan's figures.
+   *
+   * The hit band alone is deliberate. Any other country this small is simply
+   * out of reach until you zoom, and that is a limit of the map, not a claim
+   * about the country.
+   */
+  const withheldHits = gZoom
+    .selectAll('path.withheld-hit')
+    .data(countries.filter((f) => withheld[iso3Of(f)]))
+    .join('path')
+    .attr('class', 'withheld-hit')
+    .attr('aria-hidden', 'true')
+    .on('click', (ev, f) => selectCountry(f));
+
   // --- size and projection --------------------------------------------------
   function resize() {
     const { width, height } = el.stage.getBoundingClientRect();
@@ -346,8 +384,11 @@ async function start() {
       { type: 'Sphere' },
     );
     paths.attr('d', path);
+    withheldHits.attr('d', path);
     outlines.forEach((o) => o.redraw());
   }
+  withheldHits.attr('stroke-width', WITHHELD_HIT);
+
   resize();
   new ResizeObserver(resize).observe(el.stage);
 
@@ -360,6 +401,7 @@ async function start() {
         gZoom.attr('transform', ev.transform);
         // Without this the borders look like walls at high zoom.
         paths.attr('stroke-width', BORDER_WIDTH / k);
+        withheldHits.attr('stroke-width', WITHHELD_HIT / k);
         outlines.forEach((o) => o.width(k));
         // Patterns live in the path's user space, so without a correction the
         // zoom would blow the grain up along with the geography. Paper grain

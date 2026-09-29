@@ -177,19 +177,34 @@ body.panel-open .map-wrap {
   opacity: 0.75;
 }
 
-.legend-empty {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+.legend-keys {
+  display: grid;
+  gap: 6px;
   margin-top: 10px;
   padding-top: 9px;
   border-top: 1px solid var(--hairline);
 }
-.legend-empty i {
+.legend-key {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.legend-key i {
+  flex: none;
   width: 20px;
   height: 14px;
   border: 1px solid var(--hairline);
   background: var(--paper);
+}
+/* The same ruling the map uses, drawn in CSS: one swatch is not worth an
+   <svg> and a second copy of the pattern. */
+.legend-key i.ruled {
+  border-color: var(--ink);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--paper) 0 2.4px,
+    var(--ink) 2.4px 3px
+  );
 }
 
 /* --- country panel -------------------------------------------------------- */
@@ -528,11 +543,20 @@ body.panel-open .panel { transform: translateX(0); }
   color: var(--ink-soft);
 }
 
-/* Left out states are drawn like the paper, but their border stays at full
-   strength: the shape is there, and clicking it says why it is empty. */
+/* A left-out state is ruled over, not left blank — the fill is a hatch set
+   from JS — and its border stays at full strength. */
 .country.withheld {
-  fill: none;
   stroke: var(--ink);
+  cursor: pointer;
+}
+
+/* Paints nothing; exists to be hit. The width is set from JS and counter-scaled
+   with the zoom, so the reach stays the same on screen. */
+.withheld-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-linejoin: round;
+  pointer-events: all;
   cursor: pointer;
 }
 

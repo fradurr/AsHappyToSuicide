@@ -127,3 +127,47 @@ export function createPatterns(defs, prefix = 'tone') {
     });
   return ls;
 }
+
+/**
+ * The fill for a state whose figures are withheld on purpose.
+ *
+ * Diagonal ruling, not a tone. Every tone on this map is a position on the
+ * scale, so filling a withheld state with one would put it somewhere it has no
+ * place; leaving it empty says the opposite thing — that the figures are
+ * missing, which they are not. Ruled over, it reads as struck out.
+ *
+ * The tile draws its diagonal three times so the line runs unbroken across the
+ * seams. Like the grain, it is counter-scaled on zoom and stays the same size
+ * on screen.
+ */
+export const HATCH_ID = 'withheld';
+const HATCH_PITCH = 3;
+
+export function createHatch(defs, id = HATCH_ID) {
+  const p = defs
+    .selectAll(`pattern#${id}`)
+    .data([id])
+    .join('pattern')
+    .attr('id', id)
+    .attr('patternUnits', 'userSpaceOnUse')
+    .attr('width', HATCH_PITCH)
+    .attr('height', HATCH_PITCH);
+
+  p.selectAll('rect')
+    .data([id])
+    .join('rect')
+    .attr('width', HATCH_PITCH)
+    .attr('height', HATCH_PITCH)
+    .attr('fill', 'rgb(239 235 228)');
+
+  const s = HATCH_PITCH;
+  p.selectAll('path')
+    .data([id])
+    .join('path')
+    .attr('d', `M0,0 l${s},${s} M${-s / 2},${s / 2} l${s},${s} M${s / 2},${-s / 2} l${s},${s}`)
+    .attr('stroke', 'rgb(38 36 31)')
+    .attr('stroke-width', 0.55)
+    .attr('fill', 'none');
+
+  return id;
+}
