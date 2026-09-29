@@ -57,7 +57,7 @@ const REPORT_FILE = fromEnv('BUILD_REPORT_FILE', path.join(ROOT, 'data', 'build-
 
 const SOURCES = {
   wellbeing: {
-    label: 'World Happiness Report — Data for Figure 2.1',
+    label: 'World Happiness Report — Data for Figure 2.1 (life evaluation)',
     // The "Data Sharing" page on worldhappiness.report distributes this file.
     // The URL changes with every edition: if the download fails, fetch it by
     // hand and save it under one of the names below in data/sources/.
@@ -65,7 +65,15 @@ const SOURCES = {
     file: 'whr-figure-2.1.xlsx',
     // Il file scaricato ha il primo nome; gli altri servono a chi compila la
     // tabella a mano partendo da data/templates/.
-    accepts: ['whr-figure-2.1.xlsx', 'whr-figure-2.1.csv', 'wellbeing.csv', 'wellbeing.xlsx'],
+    // "wellbeing" stays accepted: tables filled in before the rename still work.
+    accepts: [
+      'whr-figure-2.1.xlsx',
+      'whr-figure-2.1.csv',
+      'life-evaluation.csv',
+      'life-evaluation.xlsx',
+      'wellbeing.csv',
+      'wellbeing.xlsx',
+    ],
     page: 'https://worldhappiness.report/data-sharing/',
     edition: 2026,
     // The score on the most recent row is itself a three-year average, so the
@@ -288,7 +296,9 @@ function findWellbeingColumns(header) {
       h === 'happiness score' ||
       h === 'score' ||
       h === 'life ladder' ||
-      h === 'wellbeing' ||
+      h === 'life evaluation' ||
+      h === 'life_evaluation' ||
+      h === 'wellbeing' || // kept: tables written before the rename
       h === 'cantril' ||
       h.startsWith('ladder score') ||
       // WHR 2026 spells it this way, and the parenthetical carries the averaging
@@ -327,8 +337,8 @@ async function readTable(file, label) {
 }
 
 async function readWellbeing(file) {
-  const rows = await readTable(file, 'wellbeing');
-  if (!rows.length) fail(`The wellbeing source is empty: ${rel(file)}`);
+  const rows = await readTable(file, 'life evaluation');
+  if (!rows.length) fail(`The life evaluation source is empty: ${rel(file)}`);
 
   // Some editions put a title or a blank row above the headers, so the header
   // row is searched for rather than assumed to be the first.
@@ -352,11 +362,11 @@ async function readWellbeing(file) {
   }
   if (headerRow === -1) {
     fail(
-      'Cannot find the columns in the wellbeing source.',
+      'Cannot find the columns in the life evaluation source.',
       [
         `  file: ${rel(file)}`,
         `  first row: ${rows[0].filter(Boolean).join(' | ')}`,
-        '  it needs a score column (e.g. "Ladder score" or "wellbeing") and one',
+        '  it needs a score column (e.g. "Ladder score" or "life_evaluation") and one',
         '  identifying the country: the ISO3 code ("iso3" or "Code"), or the',
         '  name ("Country name" or "country").',
         '  Generate a ready-made template with: npm run templates',
@@ -393,11 +403,11 @@ async function readWellbeing(file) {
 
   if (rejected.length) {
     fail(
-      `Invalid values in the wellbeing source: ${rel(file)}`,
+      `Invalid values in the life evaluation source: ${rel(file)}`,
       `${rejected.map((r) => `    - ${r}`).join('\n')}\n\n  Leave the cell empty when there is no figure; an unreadable value is reported, not ignored.`,
     );
   }
-  if (!out.length) fail(`No valid rows in the wellbeing source: ${rel(file)}`);
+  if (!out.length) fail(`No valid rows in the life evaluation source: ${rel(file)}`);
 
   // The WHR 2026 file stacks every edition since 2011 in one sheet, one row per
   // country per year. Only the most recent year is kept: mixing years would put
@@ -648,7 +658,7 @@ async function main() {
   console.log('\nSources');
   const wellbeingFile = await ensureSource('wellbeing', args);
   const suicideFile = await ensureSource('suicide', args);
-  console.log(`  ✓ wellbeing: ${path.relative(ROOT, wellbeingFile)}`);
+  console.log(`  ✓ life evaluation: ${path.relative(ROOT, wellbeingFile)}`);
   console.log(`  ✓ suicide:   ${path.relative(ROOT, suicideFile)}`);
 
   const wellbeingRows = await readWellbeing(wellbeingFile);
@@ -791,7 +801,7 @@ async function main() {
     countriesWithData: complete.length,
     excluded: Object.fromEntries(excluded.map((e) => [e.iso3, e.reason])),
     note:
-      'Composite value: percentiles of wellbeing and of suicide mortality, ' +
+      'Composite value: percentiles of life evaluation and of suicide mortality, ' +
       'computed within the sample of countries that have both figures.',
     citations: {
       wellbeing: SOURCES.wellbeing.citation,
@@ -842,7 +852,7 @@ function printReport({ report, complete, suicide, geo, w }) {
     suicide.byIso.size + (suicide.year ? ` (year ${suicide.year})` : ' (year not declared)'),
   );
   line('countries with complete data', report.countriesWithData);
-  line('wellbeing only (no WHO figure)', report.wellbeingOnly.length);
+  line('life evaluation only (no WHO)', report.wellbeingOnly.length);
   line('suicide only (not in the WHR)', report.suicideOnly.length);
   line('entities with no ISO code', report.skippedNoIsoCode.length);
   line('left out on purpose', report.excludedOnPurpose.length);
@@ -866,7 +876,7 @@ function printReport({ report, complete, suicide, geo, w }) {
     console.log(`  ${items.map(fmt).join(', ')}`);
   };
 
-  show('Wellbeing but no WHO figure', report.wellbeingOnly, (c) => `${c.iso3} ${c.name}`);
+  show('Life evaluation but no WHO figure', report.wellbeingOnly, (c) => `${c.iso3} ${c.name}`);
   show('WHO figure but not in the WHR', report.suicideOnly, (c) => `${c.iso3} ${c.name}`);
   show(
     `Dropped: WHO figure older than ${report.suicideYear ?? 'the most recent year'}`,

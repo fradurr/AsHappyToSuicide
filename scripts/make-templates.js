@@ -50,11 +50,11 @@ function write(fileName, valueHeader, note) {
 }
 
 console.log('\nTables to fill in:');
-write('wellbeing.csv', 'wellbeing', 'Cantril ladder score, 0–10');
+write('life-evaluation.csv', 'life_evaluation', 'Cantril ladder score, 0–10');
 write('suicide.csv', 'rate', 'deaths per 100,000, age-standardised');
 console.log(`
 Fill in the last column and save both files in data/sources/ under these names:
-  data/sources/wellbeing.csv
+  data/sources/life-evaluation.csv
   data/sources/suicide.csv
 
 Cells left empty are countries with no figure: they stay blank on the map.

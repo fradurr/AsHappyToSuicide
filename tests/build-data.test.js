@@ -257,12 +257,12 @@ function writeCsv(file, text) {
 
 async function csvScenario(wellbeingCsv, suicideCsv) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'whr-test-'));
-  writeCsv(path.join(dir, 'sources', 'wellbeing.csv'), wellbeingCsv);
+  writeCsv(path.join(dir, 'sources', 'life-evaluation.csv'), wellbeingCsv);
   writeCsv(path.join(dir, 'sources', 'suicide.csv'), suicideCsv);
   return dir;
 }
 
-const WELLBEING_CSV = `iso3,country,wellbeing
+const WELLBEING_CSV = `iso3,country,life_evaluation
 FIN,Finland,7.74
 DNK,Denmark,7.52
 ITA,Italy,6.32
@@ -311,7 +311,7 @@ test('offline: a non-numeric cell stops the build and names the row', async () =
     () => runBuild(dir),
     (err) => {
       const t = String(err.stderr);
-      assert.match(t, /Invalid values in the wellbeing source/);
+      assert.match(t, /Invalid values in the life evaluation source/);
       assert.match(t, /row 4/);
       assert.match(t, /ITA/);
       return true;
@@ -372,9 +372,9 @@ test('offline: a malformed ISO3 code stops the build', async () => {
 
 test('the generated tables are fillable as they are', async () => {
   execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'make-templates.js')], { cwd: ROOT });
-  const csv = fs.readFileSync(path.join(ROOT, 'data', 'templates', 'wellbeing.csv'), 'utf8');
+  const csv = fs.readFileSync(path.join(ROOT, 'data', 'templates', 'life-evaluation.csv'), 'utf8');
   const rows = parseCsv(csv);
-  assert.deepEqual(rows[0], ['iso3', 'country', 'wellbeing']);
+  assert.deepEqual(rows[0], ['iso3', 'country', 'life_evaluation']);
   assert.ok(rows.length > 150, 'every drawable country should be there');
   for (const r of rows.slice(1)) {
     assert.match(r[0], /^[A-Z]{3}$/);
@@ -399,7 +399,7 @@ test('offline: the generated tables, filled in, make it all the way to the JSON'
   };
 
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'whr-test-'));
-  writeCsv(path.join(dir, 'sources', 'wellbeing.csv'), fill('wellbeing.csv', 4));
+  writeCsv(path.join(dir, 'sources', 'life-evaluation.csv'), fill('life-evaluation.csv', 4));
   writeCsv(path.join(dir, 'sources', 'suicide.csv'), fill('suicide.csv', 6));
 
   const stdout = runBuild(dir);
@@ -417,5 +417,18 @@ test('offline: the generated tables, filled in, make it all the way to the JSON'
   const report = JSON.parse(fs.readFileSync(path.join(dir, 'report.json'), 'utf8'));
   assert.ok(report.join.every((j) => j.via === 'code in the table'));
   assert.match(stdout, /ISO3 code already in the table/);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('a table written before the rename still works', async () => {
+  // The column used to be called "wellbeing" and the file "wellbeing.csv".
+  // Anyone who filled one in then should not have to redo it.
+  const old = WELLBEING_CSV.replace('iso3,country,life_evaluation', 'iso3,country,wellbeing');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'whr-test-'));
+  writeCsv(path.join(dir, 'sources', 'wellbeing.csv'), old);
+  writeCsv(path.join(dir, 'sources', 'suicide.csv'), SUICIDE_CSV);
+  runBuild(dir);
+  const out = JSON.parse(fs.readFileSync(path.join(dir, 'out', 'countries.json'), 'utf8'));
+  assert.equal(out.countries.ITA.whr, 6.32);
   fs.rmSync(dir, { recursive: true, force: true });
 });

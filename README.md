@@ -99,7 +99,7 @@ showing invented suicide figures does harm, banner or no banner.
 ```
 npm install
 npm run build:data          # joins the sources and writes public/data/countries.json
-npm test                    # 34 tests on the join, the percentiles and the failures
+npm test                    # 35 tests on the join, the percentiles and the failures
 npm run dev                 # Vite development server
 npm run build               # static build of the site
 npm run preview             # serve the build locally
@@ -130,9 +130,10 @@ Neither source is committed. Two routes, both described in
 
 1. **The official files.** `build:data` tries to download them and, failing
    that, says exactly what to fetch and where to put it.
-2. **Tables filled in by hand.** `npm run templates` writes two CSVs with one
-   row per country, ISO3 code and name already in place: only one column is
-   left to fill.
+2. **Tables filled in by hand.** `npm run templates` writes
+   `data/templates/life-evaluation.csv` and `data/templates/suicide.csv`, one
+   row per country with the ISO3 code and name already in place: only one
+   column is left to fill.
 
 The second route is not merely more convenient: an explicit ISO3 code removes
 the name-matching problem, which is the most likely way to break the join.

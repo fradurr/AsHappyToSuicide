@@ -10,7 +10,7 @@
     "excluded": {
       "ISR": "editorial"
     },
-    "note": "Composite value: percentiles of wellbeing and of suicide mortality, computed within the sample of countries that have both figures.",
+    "note": "Composite value: percentiles of life evaluation and of suicide mortality, computed within the sample of countries that have both figures.",
     "citations": {
       "wellbeing": "World Happiness Report 2026, Data for Figure 2.1.",
       "suicide": "“Data Page: Suicide rate”, part of the following publication: Esteban Ortiz-Ospina and Max Roser (2016) — “Global Health”. Data adapted from World Health Organization. Retrieved from https://archive.ourworldindata.org/20260826-190237/grapher/death-rate-from-suicides-gho.html [online resource] (archived on August 26, 2026).",
