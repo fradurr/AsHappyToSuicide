@@ -244,7 +244,7 @@ body.panel-open .panel { transform: translateX(0); }
 
 .value-number {
   display: block;
-  font-size: clamp(64px, 12vw, 104px);
+  font-size: clamp(56px, 10vw, 92px);
   font-weight: 400;
   line-height: 0.95;
   letter-spacing: -0.02em;
@@ -297,16 +297,19 @@ body.panel-open .panel { transform: translateX(0); }
 }
 .place-text b { font-weight: 600; color: var(--ink); }
 
-.place-row {
+.value-row {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
 }
+.value-main { min-width: 0; }
 
 .compare-btn {
   flex: none;
-  padding: 5px 11px;
+  margin-bottom: 2px;
+  padding: 5px 10px;
+  white-space: nowrap;
   border: 1px solid var(--hairline);
   background: var(--paper);
   color: var(--ink);
@@ -502,15 +505,6 @@ body.panel-open .panel { transform: translateX(0); }
 .compare-list li.is-current .rank,
 .compare-list li.is-current .figure { color: var(--paper); }
 
-.compare-foot {
-  margin: 0;
-  padding: 12px 28px 14px;
-  border-top: 1px solid var(--hairline);
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--ink-soft);
-}
-
 /* --- a state left out on purpose ----------------------------------------- */
 
 .withheld {
@@ -563,7 +557,7 @@ body.panel-open .panel { transform: translateX(0); }
   display: flex;
   flex-wrap: wrap;
   gap: 4px 20px;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 10px 16px;
   border-top: 1px solid var(--hairline);
   background: var(--paper-raised);
@@ -738,7 +732,6 @@ body.panel-open .panel { transform: translateX(0); }
   .compare-head { padding: 18px 16px 14px; }
   .compare-head h2 { font-size: 18px; }
   .compare-scroll { padding: 0 14px; }
-  .compare-foot { padding: 10px 16px 12px; }
   .compare-grid { min-width: 0; }
   .compare-heads > div { padding: 12px 6px 8px; }
   .compare-heads h3 { font-size: 11px; }
@@ -755,7 +748,6 @@ body.panel-open .panel { transform: translateX(0); }
      selected country's own numbers are in the panel behind this. */
   .compare-list .figure,
   .compare-mark .figure { display: none; }
-  .place-row { flex-wrap: wrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {

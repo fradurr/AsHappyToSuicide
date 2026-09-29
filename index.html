@@ -190,11 +190,6 @@ value = (1 − w) × p_life + w × p_suicide</pre>
             <svg class="compare-links" id="compare-links" aria-hidden="true"></svg>
           </div>
         </div>
-
-        <p class="compare-foot">
-          Position 1 is the highest figure in every column. Under suicide
-          mortality that means the most deaths, not the fewest.
-        </p>
       </dialog>
 
       <aside id="panel" class="panel" aria-live="polite">
@@ -203,14 +198,16 @@ value = (1 − w) × p_life + w × p_suicide</pre>
         <p class="panel-country" id="country"></p>
 
         <div class="value-block" id="value-block">
-          <span class="value-number" id="value"></span>
-          <span class="value-label">happiness value</span>
+          <div class="value-row">
+            <div class="value-main">
+              <span class="value-number" id="value"></span>
+              <span class="value-label">happiness value</span>
+            </div>
+            <button type="button" class="compare-btn" id="compare">Compare rankings</button>
+          </div>
           <div class="place">
             <svg class="place-strip" id="strip-value" aria-hidden="true"></svg>
-            <div class="place-row">
-              <p class="place-text" id="place-value"></p>
-              <button type="button" class="compare-btn" id="compare">Compare rankings</button>
-            </div>
+            <p class="place-text" id="place-value"></p>
           </div>
         </div>
 
@@ -253,7 +250,6 @@ value = (1 − w) × p_life + w × p_suicide</pre>
     </div>
 
     <footer class="footer">
-      <span id="footer-text">Placeholder: the visual identity is still to be defined.</span>
       <span class="help">Samaritans 116 123 · Telefono Amico 02 2327 2327</span>
     </footer>
 
