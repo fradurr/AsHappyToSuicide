@@ -92,6 +92,11 @@ const el = {
   suicide: document.getElementById('suicide'),
   ranks: document.getElementById('ranks'),
   noData: document.getElementById('no-data'),
+  withheld: document.getElementById('withheld'),
+  stripWellbeing: document.getElementById('strip-wellbeing'),
+  stripSuicide: document.getElementById('strip-suicide'),
+  placeWellbeing: document.getElementById('place-wellbeing'),
+  placeSuicide: document.getElementById('place-suicide'),
   closePanel: document.getElementById('close-panel'),
   notice: document.getElementById('notice'),
   intro: document.getElementById('intro'),
@@ -164,6 +169,8 @@ async function start() {
   const byId = geoIso?.byId ?? {};
   const byName = geoIso?.byName ?? {};
   const values = data?.countries ?? {};
+  const withheld = data?.meta?.excluded ?? {};
+  const total = Object.keys(values).length;
 
   const iso3Of = (f) => byId[String(f.id)] ?? byName[f.properties?.name] ?? null;
 
@@ -181,7 +188,11 @@ async function start() {
     .selectAll('path')
     .data(countries)
     .join('path')
-    .attr('class', (f) => (values[iso3Of(f)] ? 'country has-data' : 'country'))
+    .attr('class', (f) => {
+      const iso3 = iso3Of(f);
+      if (withheld[iso3]) return 'country withheld';
+      return values[iso3] ? 'country has-data' : 'country';
+    })
     // Inline style rather than attribute: a presentation attribute loses against
     // any CSS rule, and the background of .country would always win.
     .style('fill', (f) => {
@@ -193,10 +204,12 @@ async function start() {
     .attr('tabindex', 0)
     .attr('role', 'button')
     .attr('aria-label', (f) => {
-      const v = values[iso3Of(f)];
+      const iso3 = iso3Of(f);
+      const v = values[iso3];
       const name = v?.name ?? f.properties?.name ?? 'unnamed';
+      if (withheld[iso3]) return `${name}, figures deliberately withheld`;
       return v
-        ? `${name}, happiness value ${fmt(v.index)} out of 100, from a wellbeing score of ${fmt(v.whr, 2)} and suicide mortality of ${fmt(v.suicide)} per 100,000`
+        ? `${name}, happiness value ${fmt(v.index)} out of 100, from a life evaluation of ${fmt(v.whr, 2)} and suicide mortality of ${fmt(v.suicide)} per 100,000`
         : `${name}, no data available`;
     })
     .on('click', (ev, f) => selectCountry(f))
@@ -206,6 +219,13 @@ async function start() {
         selectCountry(f);
       }
     });
+
+  // A left-out state must win the hit test inside its own borders. Its
+  // neighbours are drawn after it in the TopoJSON, so without raising it a
+  // click near the border lands on one of them — and on this particular state,
+  // answering "no data available" instead of the note would be its own kind of
+  // statement.
+  paths.filter((f) => withheld[iso3Of(f)]).raise();
 
   // --- size and projection --------------------------------------------------
   function resize() {
@@ -241,17 +261,33 @@ async function start() {
 
   // --- selection ------------------------------------------------------------
   function selectCountry(f) {
-    const v = values[iso3Of(f)];
+    const iso3 = iso3Of(f);
+    const v = values[iso3];
     paths.classed('selected', (d) => d === f);
     el.country.textContent = v?.name ?? f.properties?.name ?? '—';
 
+    // Three states the panel can be in, and only one of them is shown at a time.
+    const isWithheld = Boolean(withheld[iso3]);
+    el.withheld.hidden = !isWithheld;
+    el.valueBlock.hidden = isWithheld || !v;
+    el.details.hidden = isWithheld || !v;
+    el.noData.hidden = isWithheld || Boolean(v);
+
+    if (isWithheld) {
+      open();
+      return;
+    }
+
     if (v) {
-      el.valueBlock.hidden = false;
-      el.details.hidden = false;
-      el.noData.hidden = true;
       el.value.textContent = fmt(v.index);
       el.wellbeing.textContent = fmt(v.whr, 2);
       el.suicide.textContent = fmt(v.suicide);
+
+      // Where the country sits among the others, on each figure on its own.
+      // Rank rather than raw value: "26th highest of 142" is the question the
+      // strip answers, and a rank spreads evenly where a skewed rate does not.
+      drawPlace(el.stripWellbeing, el.placeWellbeing, v.rankWhr, total, 'highest');
+      drawPlace(el.stripSuicide, el.placeSuicide, v.rankSuicide, total, 'highest');
 
       const delta = v.rankDelta ?? v.rankWhr - v.rank;
       const places = (n) => (Math.abs(n) === 1 ? 'place' : 'places');
@@ -263,11 +299,8 @@ async function start() {
             : `Falls <strong>${Math.abs(delta)}</strong> ${places(delta)} once suicides are counted.`;
       el.ranks.innerHTML =
         `Position by happiness value: <strong>${v.rank}</strong>. ` +
-        `By the wellbeing score alone: <strong>${v.rankWhr}</strong>. ${movement}`;
+        `By life evaluation alone: <strong>${v.rankWhr}</strong>. ${movement}`;
     } else {
-      el.valueBlock.hidden = true;
-      el.details.hidden = true;
-      el.noData.hidden = false;
       el.noData.textContent = 'No data available for this country.';
     }
 
@@ -299,6 +332,56 @@ async function start() {
     paths.classed('selected', false);
   }
   el.panel.inert = true;
+}
+
+/**
+ * The position strip under one figure: the whole scale in the map's seven
+ * tones, with a notch where this country falls.
+ *
+ * No icon and no symbol. Half of what this panel reports is deaths, and a mark
+ * that reads as a rating would turn a number of people into a verdict.
+ *
+ * @param rank 1 is the highest value of the quantity above the strip.
+ */
+function drawPlace(node, text, rank, total, direction) {
+  if (!node || !Number.isFinite(rank) || total < 2) return;
+
+  const svg = select(node);
+  const W = 300;
+  const H = 7;
+  svg.attr('viewBox', `0 0 ${W} ${H + 6}`).attr('preserveAspectRatio', 'none');
+
+  svg
+    .selectAll('rect.band')
+    .data(tones())
+    .join('rect')
+    .attr('class', 'band')
+    .attr('x', (d) => (d.i * W) / LEVELS)
+    .attr('y', 0)
+    .attr('width', W / LEVELS + 0.5)
+    .attr('height', H)
+    .attr('fill', (d) => d.fill);
+
+  // Position by rank, not by raw value: a skewed quantity would bunch every
+  // notch at one end and say nothing about where a country stands.
+  //
+  // Clamped by half the notch's width, or the first and last countries would
+  // have half a triangle hanging outside the drawing.
+  const half = 4;
+  const x = Math.min(W - half, Math.max(half, ((total - rank) / (total - 1)) * W));
+  svg
+    .selectAll('polygon.notch')
+    .data([x])
+    .join('polygon')
+    .attr('class', 'notch')
+    .attr('points', (d) => `${d - 4},${H + 6} ${d + 4},${H + 6} ${d},${H + 0.5}`);
+
+  const ordinal = (n) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+  text.innerHTML = `<b>${ordinal(rank)}</b> ${direction} of ${total}`;
 }
 
 /** The legend swatches: the same patterns as the map, under their own prefix. */

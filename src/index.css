@@ -260,6 +260,52 @@ body.panel-open .panel { transform: translateX(0); }
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* --- where a country sits on one of the two figures ----------------------- */
+
+.place { margin-top: 10px; }
+
+.place-strip {
+  display: block;
+  width: 100%;
+  height: 13px;
+}
+.place-strip .band { stroke: rgb(38 36 31 / 0.12); stroke-width: 0.5; }
+.place-strip .notch { fill: var(--ink); }
+
+.place-text {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.place-text b { font-weight: 600; color: var(--ink); }
+
+/* --- a state left out on purpose ----------------------------------------- */
+
+.withheld {
+  margin: 18px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--hairline);
+}
+.withheld[hidden] { display: none; }
+.withheld p {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.withheld p + p {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* Left out states are drawn like the paper, but their border stays at full
+   strength: the shape is there, and clicking it says why it is empty. */
+.country.withheld {
+  fill: none;
+  stroke: var(--ink);
+  cursor: pointer;
+}
+
 .ranks {
   margin: 18px 0 0;
   font-size: 15px;

@@ -97,6 +97,23 @@ const SOURCES = {
 
 const DEFAULT_WEIGHT = 0.25;
 
+/**
+ * States deliberately left out, and why.
+ *
+ * This is an editorial decision, not a gap in the sources: the figures exist and
+ * the join finds them. Excluding a country is only defensible if it is stated
+ * plainly, so the reason travels into the published JSON, the country's panel
+ * says it on click, and the method page carries it in full.
+ *
+ * The exclusion happens before the percentiles are computed. Leaving a country
+ * in the sample while hiding it would let it shape everyone else's position
+ * from behind the curtain, which would be worse than either showing it or
+ * dropping it.
+ */
+const EXCLUDED = {
+  ISR: 'editorial',
+};
+
 /** A readable path: relative to the project root when it sits inside it. */
 function rel(p) {
   const r = path.relative(ROOT, p);
@@ -697,11 +714,17 @@ async function main() {
   // --- The sample with complete data ---------------------------------------
   const complete = [];
   const missingSuicide = [];
+  const excluded = [];
 
   for (const [iso3, rec] of wellbeingByIso) {
     const s = suicide.byIso.get(iso3);
     if (!s) {
       missingSuicide.push({ iso3, name: rec.name });
+      continue;
+    }
+    // Before the percentiles, on purpose: see EXCLUDED.
+    if (EXCLUDED[iso3]) {
+      excluded.push({ iso3, name: rec.name, reason: EXCLUDED[iso3] });
       continue;
     }
     complete.push({ iso3, whrName: rec.name, whr: rec.score, suicide: s.rate });
@@ -729,9 +752,14 @@ async function main() {
 
   const ranks = competitionRanks(complete.map((c) => c.index));
   const ranksWhr = competitionRanks(complete.map((c) => c.whr));
+  // 1 is the highest rate. Deaths are not a league table, so the panel never
+  // prints this bare: it reads "26th highest of 142", which says what the
+  // number is a position in.
+  const ranksSuicide = competitionRanks(complete.map((c) => c.suicide));
   complete.forEach((c, i) => {
     c.rank = ranks[i];
     c.rankWhr = ranksWhr[i];
+    c.rankSuicide = ranksSuicide[i];
     // Positive means the country rises once suicides are counted.
     c.rankDelta = ranksWhr[i] - ranks[i];
   });
@@ -746,6 +774,7 @@ async function main() {
       suicide: round(c.suicide, 1),
       rank: c.rank,
       rankWhr: c.rankWhr,
+      rankSuicide: c.rankSuicide,
       rankDelta: c.rankDelta,
     };
   }
@@ -760,6 +789,7 @@ async function main() {
     suicideYear: suicide.year,
     generated: new Date().toISOString().slice(0, 10),
     countriesWithData: complete.length,
+    excluded: Object.fromEntries(excluded.map((e) => [e.iso3, e.reason])),
     note:
       'Composite value: percentiles of wellbeing and of suicide mortality, ' +
       'computed within the sample of countries that have both figures.',
@@ -786,6 +816,7 @@ async function main() {
     wellbeingOnly: missingSuicide.sort((a, b) => a.iso3.localeCompare(b.iso3)),
     suicideOnly: missingWellbeing.sort((a, b) => a.iso3.localeCompare(b.iso3)),
     skippedNoIsoCode: skipped,
+    excludedOnPurpose: excluded,
     withDataWithoutGeometry: withoutGeometry,
     geometryFeatures: geo.featureCount,
     geometryWithoutIso3: geo.unmapped,
@@ -814,6 +845,7 @@ function printReport({ report, complete, suicide, geo, w }) {
   line('wellbeing only (no WHO figure)', report.wellbeingOnly.length);
   line('suicide only (not in the WHR)', report.suicideOnly.length);
   line('entities with no ISO code', report.skippedNoIsoCode.length);
+  line('left out on purpose', report.excludedOnPurpose.length);
 
   const count = (via) => report.join.filter((j) => j.via === via).length;
   console.log('\nJoin');
@@ -842,6 +874,11 @@ function printReport({ report, complete, suicide, geo, w }) {
     (c) => `${c.iso3} (${c.year})`,
   );
   show('Excluded: no ISO 3166-1 code', report.skippedNoIsoCode, (n) => n);
+  show(
+    'Left out on purpose, before the percentiles',
+    report.excludedOnPurpose,
+    (c) => `${c.iso3} ${c.name} (${c.reason})`,
+  );
   show(
     'Have data but are absent from the 1:110m geometry',
     report.withDataWithoutGeometry.map((iso3) => ({ iso3 })),

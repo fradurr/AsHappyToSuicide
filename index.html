@@ -57,8 +57,15 @@
           <p>
             The World Happiness Report ranks countries on a single question, put
             to a sample of their residents: “on a scale from 0 to 10, where does
-            your life stand today?”. It is a useful measure, but it cannot
-            account for the people who chose to end that life.
+            your life stand today?”. The report calls the answer a
+            <b>life evaluation</b>, and averages it over three years. It is a
+            useful measure, but it cannot account for the people who chose to end
+            that life.
+          </p>
+          <p>
+            <b>Happiness value</b> is not a measure anyone publishes. It is the
+            composite built here, on this page, out of those two figures. The
+            name is ours and so is the arithmetic; both are set out below.
           </p>
           <p>
             The result is a tension known as the <i>happiness–suicide paradox</i>:
@@ -77,13 +84,13 @@
             The two quantities cannot be compared as they are: one runs from 0 to
             10, the other counts deaths per 100,000 people. Both are therefore
             turned into percentiles within the group of countries that have both
-            figures — 143 of them — where 100 is the best in the group and 0 the
+            figures — 142 of them — where 100 is the best in the group and 0 the
             worst.
           </p>
-          <pre class="formula">p_wellbeing = percentile(score 0–10)
-p_suicide   = percentile(−rate per 100,000)
+          <pre class="formula">p_life    = percentile(life evaluation 0–10)
+p_suicide = percentile(−rate per 100,000)
 
-value = (1 − w) × p_wellbeing + w × p_suicide</pre>
+value = (1 − w) × p_life + w × p_suicide</pre>
           <p>
             With <b>w = 0.25</b>, suicide mortality carries a quarter of the
             weight. At w = 0 the result is exactly the World Happiness Report
@@ -110,15 +117,25 @@ value = (1 − w) × p_wellbeing + w × p_suicide</pre>
             figure is arbitrary, and should be defended as such.
           </p>
           <p>
-            <b>The two sources cover different years.</b> The wellbeing score is
+            <b>One state is left out on purpose.</b> Israel is not represented on
+            this map. Its figures exist and the sources carry them; showing them
+            has been withheld on political and humanitarian grounds, in response
+            to the genocide in Gaza. The exclusion happens before the percentiles
+            are computed, so no country's position is shaped by a figure the map
+            refuses to show — which also means every position here is one place
+            different from what a 143-country sample would give. It is an
+            editorial decision, and it is stated here rather than hidden.
+          </p>
+          <p>
+            <b>The two sources cover different years.</b> The life evaluation is
             an average of 2023–2025; the mortality estimates are for 2021. Four
             years separate the two, and nothing here bridges them.
           </p>
 
           <h3>Sources</h3>
           <p>
-            <b>Wellbeing.</b> World Happiness Report 2026, data behind Figure
-            2.1. The score is a three-year average covering 2023–2025.
+            <b>Life evaluation.</b> World Happiness Report 2026, data behind
+            Figure 2.1. A three-year average covering 2023–2025.
           </p>
           <p>
             <b>Suicide mortality.</b> Age-standardised rates for 2021, from the
@@ -172,18 +189,38 @@ value = (1 − w) × p_wellbeing + w × p_suicide</pre>
         <div id="details" class="details">
           <dl class="components">
             <div>
-              <dt>Wellbeing score <span class="unit">(0–10)</span></dt>
+              <dt>Life evaluation <span class="unit">(0–10)</span></dt>
               <dd id="wellbeing"></dd>
+              <div class="place">
+                <svg class="place-strip" id="strip-wellbeing" aria-hidden="true"></svg>
+                <p class="place-text" id="place-wellbeing"></p>
+              </div>
             </div>
             <div>
               <dt>Suicide mortality <span class="unit">(per 100,000)</span></dt>
               <dd id="suicide"></dd>
+              <div class="place">
+                <svg class="place-strip" id="strip-suicide" aria-hidden="true"></svg>
+                <p class="place-text" id="place-suicide"></p>
+              </div>
             </div>
           </dl>
           <p class="ranks" id="ranks"></p>
         </div>
 
         <p class="no-data" id="no-data" hidden></p>
+
+        <div class="withheld" id="withheld" hidden>
+          <p>
+            No figures are shown for this state. They have been deliberately
+            withheld, on political and humanitarian grounds, in response to the
+            genocide in Gaza.
+          </p>
+          <p>
+            This is an editorial decision of this project, not a gap in the
+            sources. The method page explains it.
+          </p>
+        </div>
       </aside>
     </div>
 

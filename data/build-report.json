@@ -1,9 +1,9 @@
 {
-  "generated": "2026-09-28",
+  "generated": "2026-09-29",
   "weight": 0.25,
   "suicideYear": 2021,
   "whrRows": 147,
-  "countriesWithData": 143,
+  "countriesWithData": 142,
   "wellbeingOnly": [
     {
       "iso3": "HKG",
@@ -229,6 +229,13 @@
     }
   ],
   "skippedNoIsoCode": [],
+  "excludedOnPurpose": [
+    {
+      "iso3": "ISR",
+      "name": "Israel",
+      "reason": "editorial"
+    }
+  ],
   "withDataWithoutGeometry": [
     "SGP",
     "MLT",

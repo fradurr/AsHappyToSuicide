@@ -1,6 +1,6 @@
 # The Value of Happiness
 
-A world map that sets the World Happiness Report's wellbeing score against the
+A world map that sets the World Happiness Report's life evaluation against the
 WHO's suicide mortality rate, and shows how far a country moves once the second
 figure is counted in.
 
@@ -16,16 +16,27 @@ The original brief is in [`BRIEF-mappa-felicita.md`](./BRIEF-mappa-felicita.md)
 | `public/geo/countries-110m.json` | committed (Natural Earth 1:110m) |
 | map, zoom and pan, country panel | done |
 | intro screen and method page | done |
-| `public/data/countries.json` | **done**: 143 countries, real data |
+| `public/data/countries.json` | **done**: 142 countries, real data |
 | visual identity | placeholder, to be redone |
 
 ### The data in place
 
-143 countries have both figures. Wellbeing comes from the World Happiness
+142 countries are shown. The life evaluation comes from the World Happiness
 Report 2026 (a three-year average over 2023–2025), mortality from the WHO's
 Global Health Estimates for 2021.
 
-Four countries have a wellbeing score but no WHO figure — Hong Kong, Palestine,
+**Happiness value** is not a published measure. It is the composite built by
+this project out of those two figures; the name and the arithmetic are both
+ours, and both are set out on the method page.
+
+**Israel is left out on purpose.** Its figures exist and the join finds them;
+showing them is withheld on political and humanitarian grounds, in response to
+the genocide in Gaza. The exclusion happens before the percentiles are computed,
+so no country's position is shaped by a figure the map refuses to show. It is an
+editorial decision, stated on the method page, in the country's own panel, and
+in `meta.excluded` inside the published JSON.
+
+Four countries have a life evaluation but no WHO figure — Hong Kong, Palestine,
 Taiwan and Kosovo — and 51 have a WHO figure but are not in the WHR. Five more
 have both but cannot be drawn at 1:110m: Singapore, Malta, Bahrain, Mauritius
 and Comoros. The full account is in `data/build-report.json`.
@@ -88,7 +99,7 @@ showing invented suicide figures does harm, banner or no banner.
 ```
 npm install
 npm run build:data          # joins the sources and writes public/data/countries.json
-npm test                    # 31 tests on the join, the percentiles and the failures
+npm test                    # 34 tests on the join, the percentiles and the failures
 npm run dev                 # Vite development server
 npm run build               # static build of the site
 npm run preview             # serve the build locally
@@ -159,9 +170,9 @@ Both variables become percentiles within the sample of countries that have
 *both* figures:
 
 ```
-p_wellbeing = percentile(WHR score)        // higher is better
-p_suicide   = percentile(−suicide rate)    // lower is better
-value       = (1 − w) × p_wellbeing + w × p_suicide        w = 0.25
+p_life    = percentile(life evaluation)   // higher is better
+p_suicide = percentile(−suicide rate)     // lower is better
+value     = (1 − w) × p_life + w × p_suicide        w = 0.25
 ```
 
 At `w = 0` the value reproduces the World Happiness Report ranking exactly —
