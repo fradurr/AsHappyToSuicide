@@ -91,13 +91,24 @@ body.panel-open .map-wrap {
   outline: none;
 }
 .country.has-data { cursor: pointer; stroke: var(--ink); }
-/* A hairline, not a frame. The selected country is already set apart by the
-   panel naming it; the outline only has to say which shape that is. */
-.country:focus-visible,
-.country.selected {
-  stroke: var(--ink);
-  stroke-width: 0.7px;
+
+/* The selected and focused countries are marked by their own path, drawn over
+   the map and clipped to the shape it traces (see insetOutline in main.js), so
+   nothing here touches .country.selected. A hairline, not a frame: the panel
+   already names the country, and the outline only has to say which shape that
+   is. */
+.outline-line,
+.outline-gap,
+.outline-edge {
+  fill: none;
+  stroke-linejoin: round;
+  pointer-events: none;
 }
+.outline-line { stroke: var(--ink); }
+.outline-edge { stroke: var(--ink); }
+/* A country with no data keeps its lighter border when it is selected. */
+.outline-edge.faint { stroke: var(--hairline); }
+/* .outline-gap is painted from JS with the country's own fill. */
 
 /* --- legend --------------------------------------------------------------- */
 
@@ -278,6 +289,209 @@ body.panel-open .panel { transform: translateX(0); }
   color: var(--ink-soft);
 }
 .place-text b { font-weight: 600; color: var(--ink); }
+
+.place-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.compare-btn {
+  flex: none;
+  padding: 5px 11px;
+  border: 1px solid var(--hairline);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.compare-btn:hover { border-color: var(--ink); }
+
+/* --- the three rankings, side by side ------------------------------------ */
+
+.compare {
+  --gap: 36px;
+  flex-direction: column;
+  width: min(58rem, calc(100vw - 32px));
+  max-height: min(86vh, 56rem);
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  background: var(--paper-raised);
+  color: var(--ink);
+}
+/* Only while open. An author `display` on the element itself would beat the
+   browser's own `dialog:not([open]) { display: none }` — origin wins over
+   specificity — and the closed dialog would sit on top of the map. */
+.compare[open] { display: flex; }
+.compare::backdrop { background: rgb(38 36 31 / 0.45); }
+
+.compare-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 26px 28px 18px;
+  border-bottom: 1px solid var(--hairline);
+}
+.compare-head h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.compare-sub {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.compare-close {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  margin: -4px -8px 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.compare-close:hover { color: var(--ink); }
+
+.compare-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 28px;
+}
+
+.compare-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--gap);
+  min-width: 38rem;
+  padding-bottom: 22px;
+}
+
+/* One sticky strip across all three columns rather than three sticky headings:
+   a heading only covers its own column, and rows would scroll up through the
+   gaps between them. */
+.compare-heads {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--gap);
+  background: var(--paper-raised);
+  border-bottom: 1px solid var(--hairline);
+}
+.compare-heads > div { padding: 16px 10px 10px; }
+.compare-heads h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.compare-unit {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+/* The selected country's own row, lifted out of the list and pinned under the
+   heading. Same grid, same padding, negative margins to cancel the head's own:
+   it lines up with the rows below as if it had never left them. */
+.compare-mark {
+  display: grid;
+  grid-template-columns: 2.4em 1fr auto;
+  align-items: baseline;
+  gap: 9px;
+  margin: 10px -10px 0;
+  padding: 3px 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.compare-mark .rank,
+.compare-mark .figure {
+  color: var(--paper);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.compare-mark .rank { text-align: right; }
+.compare-mark .name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Positioned, so that the columns paint over the connector rather than under
+   it: an absolutely positioned overlay otherwise wins whatever the order. */
+.compare-col { position: relative; }
+
+/* The composite is the column the other two are read against. */
+.compare-col.is-primary,
+.compare-heads .is-primary { background: var(--paper); }
+
+.compare-links {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+.compare-links .link {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.compare-list {
+  margin: 0;
+  padding: 4px 0 0;
+  list-style: none;
+}
+.compare-list li {
+  display: grid;
+  grid-template-columns: 2.4em 1fr auto;
+  align-items: baseline;
+  gap: 9px;
+  padding: 3px 10px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.compare-list .rank,
+.compare-list .figure {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.compare-list .rank { text-align: right; }
+.compare-list .name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* Inverted, because there is no second colour to mark it with. */
+.compare-list li.is-current { background: var(--ink); color: var(--paper); }
+.compare-list li.is-current .rank,
+.compare-list li.is-current .figure { color: var(--paper); }
+
+.compare-foot {
+  margin: 0;
+  padding: 12px 28px 14px;
+  border-top: 1px solid var(--hairline);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
 
 /* --- a state left out on purpose ----------------------------------------- */
 
@@ -502,6 +716,11 @@ body.panel-open .panel { transform: translateX(0); }
   body.panel-open .corner { display: none; }
   .legend { padding: 9px 11px; }
   .method-inner { padding: 28px 22px 32px; }
+  .compare { --gap: 20px; max-height: 88vh; }
+  .compare-head { padding: 18px 18px 14px; }
+  .compare-scroll { padding: 0 18px; }
+  .compare-foot { padding: 10px 18px 12px; }
+  .place-row { flex-wrap: wrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {

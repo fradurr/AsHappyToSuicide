@@ -25,6 +25,15 @@ import { feature } from 'topojson-client';
 import { createPatterns, patternId, levelFor, tones, LEVELS } from './scale.js';
 
 const BORDER_WIDTH = 0.35;
+
+/**
+ * The mark on a selected country: a hairline running inside its border, set in
+ * from it by a margin. Both figures are what is seen on screen at any zoom;
+ * `insetOutline` explains how they are drawn.
+ */
+const OUTLINE_GAP = 1;
+const OUTLINE_LINE = 0.45;
+
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 8;
 
@@ -54,6 +63,20 @@ const BASE = import.meta.env.BASE_URL;
 
 const fmt = (n, digits = 1) =>
   n.toLocaleString('en-GB', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+const ordinal = (n) => {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
+// Country names come from our own build, but they are still data going into
+// markup: escaping them costs nothing and removes the question.
+const esc = (s) =>
+  String(s).replace(
+    /[&<>"]/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+  );
 
 /**
  * Vite answers any unknown path with index.html, so a missing data file arrives
@@ -93,6 +116,8 @@ const el = {
   ranks: document.getElementById('ranks'),
   noData: document.getElementById('no-data'),
   withheld: document.getElementById('withheld'),
+  stripValue: document.getElementById('strip-value'),
+  placeValue: document.getElementById('place-value'),
   stripWellbeing: document.getElementById('strip-wellbeing'),
   stripSuicide: document.getElementById('strip-suicide'),
   placeWellbeing: document.getElementById('place-wellbeing'),
@@ -104,6 +129,13 @@ const el = {
   readMore: document.getElementById('read-more'),
   method: document.getElementById('method'),
   methodClose: document.getElementById('method-close'),
+  compareBtn: document.getElementById('compare'),
+  compareDialog: document.getElementById('compare-dialog'),
+  compareClose: document.getElementById('compare-close'),
+  compareSub: document.getElementById('compare-sub'),
+  compareScroll: document.getElementById('compare-scroll'),
+  compareGrid: document.getElementById('compare-grid'),
+  compareLinks: document.getElementById('compare-links'),
 };
 
 /**
@@ -218,7 +250,74 @@ async function start() {
         ev.preventDefault();
         selectCountry(f);
       }
-    });
+    })
+    // Keyboard focus is marked the same way the selection is, and only when the
+    // browser judges the focus visible: a mouse click would otherwise leave a
+    // ring behind on the country it just opened.
+    .on('focus', (ev, f) => {
+      if (ev.target.matches(':focus-visible')) focusOutline.show(f);
+    })
+    .on('blur', () => focusOutline.hide());
+
+  /** The paint a country is filled with, which the outline has to restore. */
+  const fillOf = (f) => {
+    const v = values[iso3Of(f)];
+    return v ? `url(#${patternId(levelFor(fractionOf(v.index)))})` : 'var(--paper)';
+  };
+
+  /**
+   * The mark on a selected country: a hairline inside the border, set in from
+   * it, never on it.
+   *
+   * A stroke straddles the line it is drawn on, so an outline on the border
+   * itself puts half of its weight on the neighbour. On a map where every
+   * border is shared that is not cosmetic: the marked country thickens its
+   * edge over whoever it touches, and the border stops being where the
+   * geometry says it is.
+   *
+   * Three passes, all clipped to the country so that nothing can land outside
+   * it. An ink band from the edge inwards, then the country's own fill painted
+   * back over the outer part of that band — what is left of the ink is a line
+   * floating a margin's width inside. Last the border is drawn again at its
+   * normal weight, because the second pass has just covered its inner half.
+   */
+  function insetOutline(id) {
+    const clip = defs.append('clipPath').attr('id', id).append('path');
+    const g = gZoom.append('g').attr('pointer-events', 'none');
+    const inside = g.append('g').attr('clip-path', `url(#${id})`);
+    const line = inside.append('path').attr('class', 'outline-line');
+    const gap = inside.append('path').attr('class', 'outline-gap');
+    const edge = g.append('path').attr('class', 'outline-edge');
+    let current = null;
+
+    const paint = (f) => {
+      const d = path(f);
+      clip.attr('d', d);
+      line.attr('d', d);
+      gap.attr('d', d).style('stroke', fillOf(f));
+      edge.attr('d', d).classed('faint', !values[iso3Of(f)] && !withheld[iso3Of(f)]);
+    };
+
+    return {
+      show(f) {
+        current = f;
+        paint(f);
+      },
+      hide() {
+        current = null;
+        [clip, line, gap, edge].forEach((n) => n.attr('d', null));
+      },
+      // The projection changes with the window, the strokes with the zoom.
+      redraw() {
+        if (current) paint(current);
+      },
+      width(k) {
+        line.attr('stroke-width', (2 * (OUTLINE_GAP + OUTLINE_LINE)) / k);
+        gap.attr('stroke-width', (2 * OUTLINE_GAP) / k);
+        edge.attr('stroke-width', BORDER_WIDTH / k);
+      },
+    };
+  }
 
   // A left-out state must win the hit test inside its own borders. Its
   // neighbours are drawn after it in the TopoJSON, so without raising it a
@@ -226,6 +325,14 @@ async function start() {
   // answering "no data available" instead of the note would be its own kind of
   // statement.
   paths.filter((f) => withheld[iso3Of(f)]).raise();
+
+  // Appended after the countries, so they are never painted over. Selection and
+  // keyboard focus get one each: tabbing away from the selected country must
+  // not rub its outline out.
+  const selectionOutline = insetOutline('outline-selected');
+  const focusOutline = insetOutline('outline-focus');
+  const outlines = [selectionOutline, focusOutline];
+  outlines.forEach((o) => o.width(1));
 
   // --- size and projection --------------------------------------------------
   function resize() {
@@ -239,6 +346,7 @@ async function start() {
       { type: 'Sphere' },
     );
     paths.attr('d', path);
+    outlines.forEach((o) => o.redraw());
   }
   resize();
   new ResizeObserver(resize).observe(el.stage);
@@ -252,6 +360,7 @@ async function start() {
         gZoom.attr('transform', ev.transform);
         // Without this the borders look like walls at high zoom.
         paths.attr('stroke-width', BORDER_WIDTH / k);
+        outlines.forEach((o) => o.width(k));
         // Patterns live in the path's user space, so without a correction the
         // zoom would blow the grain up along with the geography. Paper grain
         // does not zoom: counter-scaling keeps it the same size on screen.
@@ -260,10 +369,14 @@ async function start() {
   );
 
   // --- selection ------------------------------------------------------------
+  let selected = null;
+
   function selectCountry(f) {
     const iso3 = iso3Of(f);
     const v = values[iso3];
     paths.classed('selected', (d) => d === f);
+    selectionOutline.show(f);
+    selected = v ? iso3 : null;
     el.country.textContent = v?.name ?? f.properties?.name ?? '—';
 
     // Three states the panel can be in, and only one of them is shown at a time.
@@ -284,10 +397,22 @@ async function start() {
       el.suicide.textContent = fmt(v.suicide);
 
       // Where the country sits among the others, on each figure on its own.
-      // Rank rather than raw value: "26th highest of 142" is the question the
-      // strip answers, and a rank spreads evenly where a skewed rate does not.
-      drawPlace(el.stripWellbeing, el.placeWellbeing, v.rankWhr, total, 'highest');
-      drawPlace(el.stripSuicide, el.placeSuicide, v.rankSuicide, total, 'highest');
+      //
+      // The two components are placed by rank: "27th highest of 142" is the
+      // question their strip answers, and a rank spreads evenly where a skewed
+      // rate would bunch every notch at one end.
+      //
+      // The happiness value is placed by the value instead. Its strip carries
+      // the same seven tones as the map, so the notch has to fall in the band
+      // the country is actually drawn in — by rank it would sometimes land one
+      // band off, and the panel would quietly contradict the map.
+      drawPlace(el.stripValue, el.placeValue, {
+        rank: v.rank,
+        total,
+        at: fractionOf(v.index),
+      });
+      drawPlace(el.stripWellbeing, el.placeWellbeing, { rank: v.rankWhr, total });
+      drawPlace(el.stripSuicide, el.placeSuicide, { rank: v.rankSuicide, total });
 
       const delta = v.rankDelta ?? v.rankWhr - v.rank;
       const places = (n) => (Math.abs(n) === 1 ? 'place' : 'places');
@@ -312,9 +437,9 @@ async function start() {
   });
 
   window.addEventListener('keydown', (ev) => {
-    // While the method dialog is open, Esc belongs to it: otherwise one key
-    // would close both.
-    if (ev.key === 'Escape' && !el.method?.open) close();
+    // While a dialog is open, Esc belongs to it: otherwise one key would close
+    // the dialog and the panel underneath it at the same time.
+    if (ev.key === 'Escape' && !el.method?.open && !el.compareDialog?.open) close();
   });
 
   el.closePanel.addEventListener('click', close);
@@ -324,8 +449,174 @@ async function start() {
     document.body.classList.add('panel-open');
   }
 
+  // --- the three rankings, side by side -------------------------------------
+
+  /**
+   * The composite sits between the two figures it is made of, and reads left to
+   * right: the first line says how far a country moves once suicides are
+   * counted, the second says why it moved.
+   *
+   * The lists are there to be read, not clicked through. Half of what they
+   * carry is deaths, and a ranking that invites you to poke at it starts to
+   * read as a leaderboard. The map stays the way in.
+   */
+  const RANKINGS = [
+    {
+      key: 'rankWhr',
+      title: 'Life evaluation',
+      unit: '0\u201310, highest first',
+      figure: (c) => fmt(c.whr, 2),
+    },
+    {
+      key: 'rank',
+      title: 'Happiness value',
+      unit: '0\u2013100, highest first',
+      figure: (c) => fmt(c.index),
+      primary: true,
+    },
+    {
+      key: 'rankSuicide',
+      title: 'Suicide mortality',
+      unit: 'per 100,000, highest first',
+      figure: (c) => fmt(c.suicide),
+    },
+  ];
+
+  const ranked = Object.entries(values).map(([iso3, v]) => ({ iso3, ...v }));
+  let compareBuilt = false;
+
+  // Three columns of 142 rows, built once and on demand: someone who never
+  // opens the comparison never pays for it.
+  function buildCompare() {
+    if (compareBuilt || !el.compareGrid) return;
+
+    // Each head carries the selected country's own row, pinned. Three ranks far
+    // apart do not fit on one screen — Finland is 1st, 13th and 27th — so the
+    // lists alone would answer the question only after a scroll.
+    const heads = RANKINGS.map(
+      (r) =>
+        `<div${r.primary ? ' class="is-primary"' : ''}>` +
+        `<h3>${r.title}</h3><p class="compare-unit">${r.unit}</p>` +
+        `<p class="compare-mark"></p></div>`,
+    ).join('');
+
+    const columns = RANKINGS.map((r) => {
+      const rows = [...ranked]
+        .sort((a, b) => a[r.key] - b[r.key])
+        .map(
+          (c) =>
+            `<li data-iso="${c.iso3}"><span class="rank">${c[r.key]}</span>` +
+            `<span class="name">${esc(c.name)}</span>` +
+            `<span class="figure">${r.figure(c)}</span></li>`,
+        )
+        .join('');
+      return (
+        `<section class="compare-col${r.primary ? ' is-primary' : ''}">` +
+        `<ol class="compare-list">${rows}</ol></section>`
+      );
+    }).join('');
+
+    // Appended rather than assigned: the overlay the connectors are drawn on is
+    // already in there.
+    el.compareGrid.insertAdjacentHTML('beforeend', `<div class="compare-heads">${heads}</div>${columns}`);
+    compareBuilt = true;
+  }
+
+  function markCompare(iso3) {
+    const v = values[iso3];
+    el.compareGrid.querySelectorAll('li.is-current').forEach((li) => li.classList.remove('is-current'));
+    if (!v) return;
+
+    el.compareGrid
+      .querySelectorAll(`li[data-iso="${iso3}"]`)
+      .forEach((li) => li.classList.add('is-current'));
+
+    el.compareGrid.querySelectorAll('.compare-mark').forEach((node, i) => {
+      const r = RANKINGS[i];
+      node.innerHTML =
+        `<span class="rank">${v[r.key]}</span>` +
+        `<span class="name">${esc(v.name)}</span>` +
+        `<span class="figure">${r.figure(v)}</span>`;
+    });
+
+    const delta = v.rankDelta ?? v.rankWhr - v.rank;
+    const places = Math.abs(delta) === 1 ? 'place' : 'places';
+    el.compareSub.textContent =
+      delta === 0
+        ? `${v.name} holds its position once suicides are counted. ${total} countries in each column.`
+        : delta > 0
+          ? `${v.name} rises ${delta} ${places} once suicides are counted. ${total} countries in each column.`
+          : `${v.name} falls ${Math.abs(delta)} ${places} once suicides are counted. ${total} countries in each column.`;
+  }
+
+  /** Brings the three marked rows into view, centred on the span between them. */
+  function scrollToMarks() {
+    const rows = [...el.compareGrid.querySelectorAll('li.is-current')];
+    if (!rows.length) return;
+    const top = el.compareGrid.getBoundingClientRect().top;
+    const ys = rows.map((r) => {
+      const b = r.getBoundingClientRect();
+      return b.top - top + b.height / 2;
+    });
+    const middle = (Math.min(...ys) + Math.max(...ys)) / 2;
+    el.compareScroll.scrollTop = Math.max(0, middle - el.compareScroll.clientHeight / 2);
+  }
+
+  /**
+   * The line joining the same country across the three columns.
+   *
+   * Drawn in the coordinates of the grid, which is the scrolled content: the
+   * line then travels with the rows and needs nothing on scroll.
+   */
+  function drawLinks() {
+    if (!el.compareLinks) return;
+    const w = el.compareGrid.offsetWidth;
+    const h = el.compareGrid.offsetHeight;
+    el.compareLinks.setAttribute('width', w);
+    el.compareLinks.setAttribute('height', h);
+    el.compareLinks.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+    const rows = [...el.compareGrid.querySelectorAll('li.is-current')];
+    if (rows.length < 2) {
+      el.compareLinks.innerHTML = '';
+      return;
+    }
+    const box = el.compareGrid.getBoundingClientRect();
+    // Document order is column order.
+    const pts = rows.map((r) => {
+      const b = r.getBoundingClientRect();
+      return { left: b.left - box.left, right: b.right - box.left, y: b.top - box.top + b.height / 2 };
+    });
+    let d = '';
+    for (let i = 0; i < pts.length - 1; i += 1) {
+      d += `M${pts[i].right} ${pts[i].y}L${pts[i + 1].left} ${pts[i + 1].y}`;
+    }
+    el.compareLinks.innerHTML = `<path class="link" d="${d}" />`;
+  }
+
+  el.compareBtn?.addEventListener('click', () => {
+    if (!selected) return;
+    buildCompare();
+    markCompare(selected);
+    el.compareDialog.showModal();
+    // After the dialog has been laid out: before that every row measures zero.
+    requestAnimationFrame(() => {
+      scrollToMarks();
+      drawLinks();
+    });
+  });
+
+  el.compareClose?.addEventListener('click', () => el.compareDialog?.close());
+  el.compareDialog?.addEventListener('click', (ev) => {
+    if (ev.target === el.compareDialog) el.compareDialog.close();
+  });
+  // The columns change width with the window, and the connectors are in pixels.
+  if (el.compareGrid) new ResizeObserver(drawLinks).observe(el.compareGrid);
+
   function close() {
     document.body.classList.remove('panel-open');
+    selectionOutline.hide();
+    selected = null;
     // Closed, the panel is off screen but would still be reachable by keyboard
     // and screen reader: inert actually takes it out of the way.
     el.panel.inert = true;
@@ -342,8 +633,11 @@ async function start() {
  * that reads as a rating would turn a number of people into a verdict.
  *
  * @param rank 1 is the highest value of the quantity above the strip.
+ * @param at   Optional 0\u20131 position for the notch. Given, it overrides the
+ *             rank: the happiness value uses it so the notch lands in the tone
+ *             the country is drawn in on the map.
  */
-function drawPlace(node, text, rank, total, direction) {
+function drawPlace(node, text, { rank, total, at, direction = 'highest' }) {
   if (!node || !Number.isFinite(rank) || total < 2) return;
 
   const svg = select(node);
@@ -362,13 +656,14 @@ function drawPlace(node, text, rank, total, direction) {
     .attr('height', H)
     .attr('fill', (d) => d.fill);
 
-  // Position by rank, not by raw value: a skewed quantity would bunch every
-  // notch at one end and say nothing about where a country stands.
+  // By rank unless told otherwise: a skewed quantity would bunch every notch at
+  // one end and say nothing about where a country stands.
   //
   // Clamped by half the notch's width, or the first and last countries would
   // have half a triangle hanging outside the drawing.
+  const pos = Number.isFinite(at) ? at : (total - rank) / (total - 1);
   const half = 4;
-  const x = Math.min(W - half, Math.max(half, ((total - rank) / (total - 1)) * W));
+  const x = Math.min(W - half, Math.max(half, pos * W));
   svg
     .selectAll('polygon.notch')
     .data([x])
@@ -376,11 +671,6 @@ function drawPlace(node, text, rank, total, direction) {
     .attr('class', 'notch')
     .attr('points', (d) => `${d - 4},${H + 6} ${d + 4},${H + 6} ${d},${H + 0.5}`);
 
-  const ordinal = (n) => {
-    const s = ['th', 'st', 'nd', 'rd'];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-  };
   text.innerHTML = `<b>${ordinal(rank)}</b> ${direction} of ${total}`;
 }
 

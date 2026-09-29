@@ -176,6 +176,27 @@ value = (1 − w) × p_life + w × p_suicide</pre>
         </article>
       </dialog>
 
+      <dialog class="compare" id="compare-dialog" aria-labelledby="compare-title">
+        <header class="compare-head">
+          <div>
+            <h2 id="compare-title">The three rankings, side by side</h2>
+            <p class="compare-sub" id="compare-sub"></p>
+          </div>
+          <button type="button" class="compare-close" id="compare-close" aria-label="Close">×</button>
+        </header>
+
+        <div class="compare-scroll" id="compare-scroll">
+          <div class="compare-grid" id="compare-grid">
+            <svg class="compare-links" id="compare-links" aria-hidden="true"></svg>
+          </div>
+        </div>
+
+        <p class="compare-foot">
+          Position 1 is the highest figure in every column. Under suicide
+          mortality that means the most deaths, not the fewest.
+        </p>
+      </dialog>
+
       <aside id="panel" class="panel" aria-live="polite">
         <button type="button" class="close" id="close-panel" aria-label="Close the panel">×</button>
 
@@ -184,6 +205,13 @@ value = (1 − w) × p_life + w × p_suicide</pre>
         <div class="value-block" id="value-block">
           <span class="value-number" id="value"></span>
           <span class="value-label">happiness value</span>
+          <div class="place">
+            <svg class="place-strip" id="strip-value" aria-hidden="true"></svg>
+            <div class="place-row">
+              <p class="place-text" id="place-value"></p>
+              <button type="button" class="compare-btn" id="compare">Compare rankings</button>
+            </div>
+          </div>
         </div>
 
         <div id="details" class="details">
