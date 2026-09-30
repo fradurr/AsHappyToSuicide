@@ -8,3 +8,6 @@ dist/
 # Il README della cartella si', per sapere cosa ci va dentro.
 data/sources/*
 !data/sources/README.md
+
+# The original brief, kept out of the published repository.
+BRIEF-mappa-felicita.md

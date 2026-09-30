@@ -4,9 +4,6 @@ A world map that sets the World Happiness Report's life evaluation against the
 WHO's suicide mortality rate, and shows how far a country moves once the second
 figure is counted in.
 
-The original brief is in [`BRIEF-mappa-felicita.md`](./BRIEF-mappa-felicita.md)
-(in Italian).
-
 ## Status
 
 | | |
