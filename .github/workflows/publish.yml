@@ -1,32 +1,35 @@
-# Pubblica il sito su GitHub Pages a ogni push sul branch di lavoro.
+# Publishes the site to GitHub Pages on every push to the working branch.
 #
-# Perché serva, una volta sola, a mano:
-#   repository su GitHub -> Settings -> Pages -> Build and deployment
+# One thing has to be done by hand, once:
+#   the repository on GitHub -> Settings -> Pages -> Build and deployment
 #   -> Source: "GitHub Actions"
 #
-# L'indirizzo risultante è https://<utente>.github.io/<repository>/
-name: Pubblica il sito
+# Free GitHub Pages needs a public repository. On a private one the workflow
+# runs and then fails at the deploy step.
+#
+# The resulting address is https://<user>.github.io/<repository>/
+name: Publish the site
 
 on:
   push:
     branches: [main, claude/happiness-suicide-index-map-bkbh8x]
-  # Permette di pubblicare a mano dalla scheda Actions, senza fare un push.
+  # Allows publishing by hand from the Actions tab, without a push.
   workflow_dispatch:
 
-# I permessi minimi perché l'azione possa scrivere su Pages.
+# The least it needs to be able to write to Pages.
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Una pubblicazione alla volta: se ne parte una nuova mentre la precedente è
-# ancora in corso, quella vecchia viene lasciata finire e non annullata a metà.
+# One publication at a time: if a new one starts while the last is still
+# running, the old one is left to finish rather than cut off half way.
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  costruisci:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,8 +45,8 @@ jobs:
         run: npm test
 
       - name: Build
-        # La base deve corrispondere al nome del repository, o il sito cerca
-        # i propri file nella radice del dominio e resta bianco.
+        # The base has to match the repository name, or the site looks for its
+        # own files at the root of the domain and comes up blank.
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
         run: npm run build
@@ -52,8 +55,8 @@ jobs:
         with:
           path: dist
 
-  pubblica:
-    needs: costruisci
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages

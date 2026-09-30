@@ -89,14 +89,18 @@ body.panel-open .map-wrap {
 }
 #map:active { cursor: grabbing; }
 
-/* The fill is a flat colour set from JS. What is left here is the no-data case:
-   paper, with only the border drawn. */
+/* The fill is set from JS. What is left here is the country with no figures:
+   paper, with only the border drawn — and inert. The legend says what an empty
+   shape means; a panel that opens to repeat it makes the map look as if it
+   were answering. Clicks pass through to the background, which closes the
+   panel, the way clicking away from a country should. */
 .country {
   fill: none;
   stroke: var(--hairline);
   stroke-linejoin: round;
   outline: none;
 }
+.country:not(.has-data):not(.withheld) { pointer-events: none; }
 .country.has-data { cursor: pointer; stroke: var(--ink); }
 
 /* The selected and focused countries are marked by their own path, drawn over
@@ -254,8 +258,7 @@ body.panel-open .panel { transform: translateX(0); }
   border-bottom: 1px solid var(--hairline);
 }
 .value-block[hidden],
-.details[hidden],
-.no-data[hidden] { display: none; }
+.details[hidden] { display: none; }
 
 .value-number {
   display: block;
@@ -570,13 +573,6 @@ body.panel-open .panel { transform: translateX(0); }
   font-weight: 400;
   color: var(--ink);
   border-bottom: 1px solid var(--hairline);
-}
-
-.no-data {
-  margin: 14px 0 0;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--ink-soft);
 }
 
 /* --- footer --------------------------------------------------------------- */

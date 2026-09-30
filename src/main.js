@@ -141,7 +141,6 @@ const el = {
   wellbeing: document.getElementById('wellbeing'),
   suicide: document.getElementById('suicide'),
   ranks: document.getElementById('ranks'),
-  noData: document.getElementById('no-data'),
   withheld: document.getElementById('withheld'),
   stripValue: document.getElementById('strip-value'),
   placeValue: document.getElementById('place-value'),
@@ -233,6 +232,19 @@ async function start() {
 
   const iso3Of = (f) => byId[String(f.id)] ?? byName[f.properties?.name] ?? null;
 
+  /**
+   * A country is selectable when there is something to say about it: figures,
+   * or a stated reason for their absence.
+   *
+   * The rest stay empty and inert. The legend already says what an empty shape
+   * means, and a panel that opens only to repeat it makes the map feel like it
+   * answers questions it cannot answer.
+   */
+  const isSelectable = (f) => {
+    const iso3 = iso3Of(f);
+    return Boolean(values[iso3] || withheld[iso3]);
+  };
+
   const fractionOf = (value) => Math.min(1, Math.max(0, value / VALUE_MAX));
 
   /**
@@ -271,16 +283,17 @@ async function start() {
     // any CSS rule, and the background of .country would always win.
     .style('fill', (f) => paintOf(f))
     .attr('stroke-width', BORDER_WIDTH)
-    .attr('tabindex', 0)
-    .attr('role', 'button')
+    // Null removes the attribute: an empty country is not a control, so it is
+    // not in the tab order and does not announce itself as one.
+    .attr('tabindex', (f) => (isSelectable(f) ? 0 : null))
+    .attr('role', (f) => (isSelectable(f) ? 'button' : null))
     .attr('aria-label', (f) => {
       const iso3 = iso3Of(f);
       const v = values[iso3];
       const name = v?.name ?? f.properties?.name ?? 'unnamed';
       if (withheld[iso3]) return `${name}, figures deliberately withheld`;
-      return v
-        ? `${name}, happiness value ${fmt(v.index)} out of 100, from a life evaluation of ${fmt(v.whr, 2)} and suicide mortality of ${fmt(v.suicide)} per 100,000`
-        : `${name}, no data available`;
+      if (!v) return null;
+      return `${name}, happiness value ${fmt(v.index)} out of 100, from a life evaluation of ${fmt(v.whr, 2)} and suicide mortality of ${fmt(v.suicide)} per 100,000`;
     })
     .on('click', (ev, f) => selectCountry(f))
     .on('keydown', (ev, f) => {
@@ -482,17 +495,18 @@ async function start() {
   function selectCountry(f) {
     const iso3 = iso3Of(f);
     const v = values[iso3];
+    const isWithheld = Boolean(withheld[iso3]);
+    if (!v && !isWithheld) return;
+
     paths.classed('selected', (d) => d === f);
     selectionOutline.show(f);
     selected = v ? iso3 : null;
     el.country.textContent = v?.name ?? f.properties?.name ?? '—';
 
-    // Three states the panel can be in, and only one of them is shown at a time.
-    const isWithheld = Boolean(withheld[iso3]);
+    // Two states the panel can be in, and only one is shown at a time.
     el.withheld.hidden = !isWithheld;
-    el.valueBlock.hidden = isWithheld || !v;
-    el.details.hidden = isWithheld || !v;
-    el.noData.hidden = isWithheld || Boolean(v);
+    el.valueBlock.hidden = isWithheld;
+    el.details.hidden = isWithheld;
 
     if (isWithheld) {
       open();
@@ -500,43 +514,39 @@ async function start() {
       return;
     }
 
-    if (v) {
-      el.value.textContent = fmt(v.index);
-      el.wellbeing.textContent = fmt(v.whr, 2);
-      el.suicide.textContent = fmt(v.suicide);
+    el.value.textContent = fmt(v.index);
+    el.wellbeing.textContent = fmt(v.whr, 2);
+    el.suicide.textContent = fmt(v.suicide);
 
-      // Where the country sits among the others, on each figure on its own.
-      //
-      // The two components are placed by rank: "27th highest of 142" is the
-      // question their strip answers, and a rank spreads evenly where a skewed
-      // rate would bunch every notch at one end.
-      //
-      // The happiness value is placed by the value instead. Its strip carries
-      // the same seven tones as the map, so the notch has to fall in the band
-      // the country is actually drawn in — by rank it would sometimes land one
-      // band off, and the panel would quietly contradict the map.
-      drawPlace(el.stripValue, el.placeValue, {
-        rank: v.rank,
-        total,
-        at: fractionOf(v.index),
-      });
-      drawPlace(el.stripWellbeing, el.placeWellbeing, { rank: v.rankWhr, total });
-      drawPlace(el.stripSuicide, el.placeSuicide, { rank: v.rankSuicide, total });
+    // Where the country sits among the others, on each figure on its own.
+    //
+    // The two components are placed by rank: "27th highest of 142" is the
+    // question their strip answers, and a rank spreads evenly where a skewed
+    // rate would bunch every notch at one end.
+    //
+    // The happiness value is placed by the value instead. Its strip carries
+    // the same seven tones as the map, so the notch has to fall in the band the
+    // country is actually drawn in — by rank it would sometimes land one band
+    // off, and the panel would quietly contradict the map.
+    drawPlace(el.stripValue, el.placeValue, {
+      rank: v.rank,
+      total,
+      at: fractionOf(v.index),
+    });
+    drawPlace(el.stripWellbeing, el.placeWellbeing, { rank: v.rankWhr, total });
+    drawPlace(el.stripSuicide, el.placeSuicide, { rank: v.rankSuicide, total });
 
-      const delta = v.rankDelta ?? v.rankWhr - v.rank;
-      const places = (n) => (Math.abs(n) === 1 ? 'place' : 'places');
-      const movement =
-        delta === 0
-          ? 'The same position in both rankings.'
-          : delta > 0
-            ? `Rises <strong>${delta}</strong> ${places(delta)} once suicides are counted.`
-            : `Falls <strong>${Math.abs(delta)}</strong> ${places(delta)} once suicides are counted.`;
-      el.ranks.innerHTML =
-        `Position by happiness value: <strong>${v.rank}</strong>. ` +
-        `By life evaluation alone: <strong>${v.rankWhr}</strong>. ${movement}`;
-    } else {
-      el.noData.textContent = 'No data available for this country.';
-    }
+    const delta = v.rankDelta ?? v.rankWhr - v.rank;
+    const places = (n) => (Math.abs(n) === 1 ? 'place' : 'places');
+    const movement =
+      delta === 0
+        ? 'The same position in both rankings.'
+        : delta > 0
+          ? `Rises <strong>${delta}</strong> ${places(delta)} once suicides are counted.`
+          : `Falls <strong>${Math.abs(delta)}</strong> ${places(delta)} once suicides are counted.`;
+    el.ranks.innerHTML =
+      `Position by happiness value: <strong>${v.rank}</strong>. ` +
+      `By life evaluation alone: <strong>${v.rankWhr}</strong>. ${movement}`;
 
     open();
     // After the panel, so that the space it leaves is what the map aims at.
