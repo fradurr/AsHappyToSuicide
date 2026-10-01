@@ -1,0 +1,34 @@
+Content licence
+===============
+
+The writing and the design of this project are licensed under the Creative
+Commons Attribution 4.0 International licence (CC BY 4.0). That covers the
+text of the site — the opening screen, the method page, the wording of the
+country panel and of the statement on the state left out — the prose of this
+repository's documentation, and the design of the map, its scale and its
+legend.
+
+You may share and adapt them, including commercially, as long as you credit
+the source, link to the licence, and state whether you changed anything.
+
+  Deed        https://creativecommons.org/licenses/by/4.0/
+  Legal code  https://creativecommons.org/licenses/by/4.0/legalcode
+
+The source code is covered separately, by the MIT licence in LICENSE.
+
+
+What neither licence covers
+---------------------------
+
+The figures. They are not this project's to license.
+
+  Life evaluation     World Happiness Report 2026, data behind Figure 2.1
+  Suicide mortality   WHO Global Health Estimates 2021, via Our World in Data
+
+public/data/countries.json is derived from both, and anyone using it is bound
+by the terms of those sources, not by this file. The citations travel inside
+the JSON under meta.citations, and are printed on the method page, so the
+numbers cannot circulate without their provenance.
+
+The geometry in public/geo/countries-110m.json comes from Natural Earth
+(1:110m), which is in the public domain.

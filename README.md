@@ -180,6 +180,15 @@ not inventing anything.
 The calculation lives in the build script. The front end receives finished
 numbers.
 
+## Licence
+
+The code is under the MIT licence ([`LICENSE`](./LICENSE)). The writing and the
+design are under CC BY 4.0 ([`LICENSE-CONTENT`](./LICENSE-CONTENT)).
+
+The figures are under neither: they belong to the World Happiness Report and to
+the WHO, and whoever uses `public/data/countries.json` is bound by the terms of
+those sources. The citations travel inside the file.
+
 ## Notes
 
 - The join happens on ISO 3166-1 alpha-3. If a source name finds no code, the
