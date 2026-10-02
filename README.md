@@ -52,7 +52,6 @@ You need [Node.js](https://nodejs.org) 22 or newer. Once:
 ```
 git clone https://github.com/fradurr/AsHappyToSuicide.git
 cd AsHappyToSuicide
-git checkout claude/happiness-suicide-index-map-bkbh8x
 npm install
 ```
 
