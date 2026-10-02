@@ -6,8 +6,38 @@
     <title>The Value of Happiness</title>
     <meta
       name="description"
-      content="A world map of subjective wellbeing corrected for suicide mortality, with the calculation shown in full."
+      content="A world map of a measure that counts suicide into wellbeing instead of leaving it out."
     />
+
+    <!--
+      What a shared link looks like.
+
+      LinkedIn, Slack, WhatsApp, Telegram and the rest read og: and ignore the
+      description above, so without these a link to this page arrives as an
+      empty rectangle — on something made to be looked at.
+
+      The URLs are absolute because a crawler holds the page in no browser and
+      has nothing to resolve a relative one against. They name the published
+      address: served from anywhere else, they would have to change.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="The Value of Happiness" />
+    <meta
+      property="og:description"
+      content="A world map of a measure that counts suicide into wellbeing instead of leaving it out."
+    />
+    <meta property="og:url" content="https://fradurr.github.io/AsHappyToSuicide/" />
+    <meta
+      property="og:image"
+      content="https://fradurr.github.io/AsHappyToSuicide/preview.png"
+    />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta
+      property="og:image:alt"
+      content="A world map in seven flat greys, darker where the happiness value is higher."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="stylesheet" href="/src/index.css" />
   </head>
   <body>
